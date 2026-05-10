@@ -6,16 +6,6 @@
   "bin": {
     "stackmint": "./dist/bin/stackmint.js"
   },
-  "main": "./dist/stackmint.cjs",
-  "module": "./dist/stackmint.js",
-  "types": "./dist/stackmint.d.ts",
-  "exports": {
-    ".": {
-      "import": "./dist/stackmint.js",
-      "require": "./dist/stackmint.cjs",
-      "types": "./dist/stackmint.d.ts"
-    }
-  },
   "files": [
     "dist"
   ],

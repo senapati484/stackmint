@@ -1,4 +1,5 @@
 node_modules
+t3-stack
 dist
 .env
 .env.local
@@ -7,3 +8,5 @@ dist
 .turbo
 coverage
 plan.md
+testing-t3-stack
+*.tgz
