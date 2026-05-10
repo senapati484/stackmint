@@ -6,6 +6,19 @@
   "bin": {
     "stackmint": "./dist/bin/stackmint.js"
   },
+  "main": "./dist/stackmint.cjs",
+  "module": "./dist/stackmint.js",
+  "types": "./dist/stackmint.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/stackmint.js",
+      "require": "./dist/stackmint.cjs",
+      "types": "./dist/stackmint.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "dev": "tsx bin/stackmint.ts",
     "build": "tsup bin/stackmint.ts --format cjs,esm --dts",
@@ -24,9 +37,22 @@
     "template",
     "drizzle",
     "trpc",
-    "hono"
+    "hono",
+    "project-generator",
+    "stack-scaffolding"
   ],
   "license": "MIT",
+  "author": "Sayansenapati",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/senapati484/stackmint"
+  },
+  "bugs": {
+    "url": "https://github.com/senapati484/stackmint/issues"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "dependencies": {
     "@clack/prompts": "^1.3.0",
     "chalk": "^5.6.2",
@@ -43,8 +69,5 @@
     "tsup": "^8.5.1",
     "typescript": "^5.9.3",
     "vitest": "^4.1.5"
-  },
-  "engines": {
-    "node": ">=20.0.0"
   }
 }
