@@ -1,4 +1,4 @@
-[![stackmint Logo](/public/img/stackmint.png)](https://github.com/senapati484/stackmint)
+[![stackmint Logo](/public/img/logo.png)](https://github.com/senapati484/stackmint)
 
 > Scaffold any TypeScript full-stack project in seconds.
 
