@@ -1,4 +1,4 @@
-import { Adapter, AdapterFile, AdapterDependency } from './index.js';
+import { Adapter, AdapterFile, AdapterDependency, ADAPTER_REGISTRY } from './index.js';
 
 interface StackConfig {
   framework?: string;
@@ -81,7 +81,7 @@ export const updateUserSchema = createUserSchema.partial();
     ],
   };
 
-  const { ADAPTER_REGISTRY } = require('./index.js');
+
   ADAPTER_REGISTRY.set('zod', adapter);
 }
 
@@ -131,7 +131,7 @@ export const updateUserSchema = v.partial(createUserSchema);
     ],
   };
 
-  const { ADAPTER_REGISTRY } = require('./index.js');
+
   ADAPTER_REGISTRY.set('valibot', adapter);
 }
 

@@ -3,7 +3,7 @@ import { ADAPTER_REGISTRY, getAdapter, AdapterFile, AdapterDependency, AdapterEn
 import { resolveConflicts } from './resolver.js';
 import { log } from '../utils/logger.js';
 import { writeProject } from './writer.js';
-import { getFrameworkTemplate } from '../templates/index.js';
+import { getFrameworkTemplate, getTemplateScripts } from '../templates/index.js';
 
 export interface GenerateOptions {
   skipInstall?: boolean;
@@ -76,7 +76,20 @@ export async function generate(
 
   log.step('Building adapter list...');
   const adapterIds = buildAdapterList(resolved as StackConfig);
+  
+  // Auto-activate framework adapters based on condition
+  for (const [adapterId, adapter] of ADAPTER_REGISTRY) {
+    if (adapter.condition && adapter.condition(resolved as StackConfig)) {
+      if (!adapterIds.includes(adapterId)) {
+        adapterIds.push(adapterId);
+      }
+    }
+  }
+  
   log.info(`Active adapters: ${adapterIds.length}`);
+  if (resolved.framework) {
+    log.info(`Framework: ${resolved.framework}`);
+  }
 
   log.step('Collecting files and dependencies...');
   let allFiles: AdapterFile[] = [];
@@ -85,8 +98,12 @@ export async function generate(
   const allScripts: Record<string, string> = {};
   const postInstallCommands: string[] = [];
 
-  const frameworkFiles = getFrameworkTemplate(resolved.framework || 'nextjs', resolved as StackConfig);
+  const frameworkId = resolved.framework || 'nextjs';
+  const frameworkFiles = getFrameworkTemplate(frameworkId, resolved as StackConfig);
   allFiles.push(...frameworkFiles);
+
+  const frameworkScripts = getTemplateScripts(frameworkId, resolved as StackConfig);
+  Object.assign(allScripts, frameworkScripts);
 
   for (const adapterId of adapterIds) {
     const adapter = getAdapter(adapterId);

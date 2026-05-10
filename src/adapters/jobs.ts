@@ -1,4 +1,4 @@
-import { Adapter, AdapterFile, AdapterDependency, AdapterEnvVar } from './index.js';
+import { Adapter, AdapterFile, AdapterDependency, AdapterEnvVar, ADAPTER_REGISTRY } from './index.js';
 
 interface StackConfig {
   framework?: string;
@@ -154,7 +154,7 @@ worker.on('failed', (job) => {
     ],
   };
 
-  const { ADAPTER_REGISTRY } = require('./index.js');
+
   ADAPTER_REGISTRY.set('inngest', inngestAdapter);
   ADAPTER_REGISTRY.set('bullmq', bullmqAdapter);
 }

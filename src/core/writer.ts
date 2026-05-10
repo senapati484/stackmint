@@ -6,6 +6,7 @@ import chalk from 'chalk';
 import { AdapterFile, AdapterDependency, AdapterEnvVar } from '../adapters/index.js';
 import { StackConfig } from '../cli/types.js';
 import { log } from '../utils/logger.js';
+import { validateGeneratedProject } from './validator.js';
 
 export async function writeProject(
   config: StackConfig,
@@ -15,14 +16,14 @@ export async function writeProject(
   scripts: Record<string, string>,
   options: { skipInstall?: boolean; dryRun?: boolean } = {}
 ): Promise<void> {
-  const projectDir = path.resolve(process.cwd(), config.projectName || 'output');
+  const projectDir = path.resolve(process.cwd(), config.projectDir || config.projectName || 'output');
 
   if (fs.existsSync(projectDir)) {
-    console.log(chalk.gray(`  Directory ${config.projectName} already exists.`));
+    console.log(chalk.gray(`  Directory ${path.basename(projectDir)} already exists.`));
   }
 
   fs.ensureDirSync(projectDir);
-  log.step(`Created project directory: ${config.projectName}`);
+  log.step(`Created project directory: ${path.basename(projectDir)}`);
 
   log.step('Writing files...');
   for (const file of files) {
@@ -94,6 +95,28 @@ coverage
       });
 
       spinner.succeed('Dependencies installed!');
+
+      // Validate the generated project
+      log.step('Validating project...');
+      const validation = await validateGeneratedProject(projectDir);
+      
+      if (!validation.valid) {
+        log.error('Validation errors:');
+        for (const error of validation.errors) {
+          log.error(`  - ${error}`);
+        }
+      }
+      
+      if (validation.warnings.length > 0) {
+        log.warn('Validation warnings:');
+        for (const warning of validation.warnings) {
+          log.warn(`  - ${warning}`);
+        }
+      }
+      
+      if (validation.valid) {
+        log.success('Project validation passed!');
+      }
     } catch (err) {
       spinner.fail('Installation failed');
       log.error('Run manually: cd ' + config.projectName + ' && npm install');
@@ -121,13 +144,14 @@ function buildPackageJson(
     }
   }
 
-  const defaultScripts: Record<string, string> = {
-    dev: getDevScript(config),
-    build: getBuildScript(config),
-    start: getStartScript(config),
+  // Framework scripts already passed in via 'scripts' now (from generator)
+  // We only provide generic defaults if they are missing
+  const mergedScripts = {
+    dev: scripts.dev || getDevScript(config),
+    build: scripts.build || getBuildScript(config),
+    start: scripts.start || getStartScript(config),
+    ...scripts
   };
-
-  const mergedScripts = { ...defaultScripts, ...scripts };
 
   return {
     name: config.projectName || 'my-app',
@@ -145,10 +169,11 @@ function getDevScript(config: StackConfig): string {
   if (framework.startsWith('next')) return 'next dev --turbopack';
   if (framework === 'sveltekit') return 'vite dev';
   if (framework === 'nuxt') return 'nuxt dev';
+  if (framework.includes('vite')) return 'vite';
   if (framework === 'hono' || framework === 'elysia') {
     return config.runtime === 'bun' ? 'bun run --hot src/index.ts' : 'tsx watch src/index.ts';
   }
-  return 'npm run dev';
+  return 'node src/index.js'; // Generic safe fallback
 }
 
 function getBuildScript(config: StackConfig): string {
@@ -156,10 +181,11 @@ function getBuildScript(config: StackConfig): string {
   if (framework.startsWith('next')) return 'next build';
   if (framework === 'sveltekit') return 'vite build';
   if (framework === 'nuxt') return 'nuxt build';
+  if (framework.includes('vite')) return 'vite build';
   if (framework === 'hono' || framework === 'elysia') {
     return config.runtime === 'bun' ? 'bun run build' : 'tsup src/index.ts --format esm --dts';
   }
-  return 'npm run build';
+  return 'tsc'; // Generic safe fallback
 }
 
 function getStartScript(config: StackConfig): string {
@@ -167,22 +193,24 @@ function getStartScript(config: StackConfig): string {
   if (framework.startsWith('next')) return 'next start';
   if (framework === 'sveltekit') return 'vite preview';
   if (framework === 'nuxt') return 'node .output/server/index.mjs';
+  if (framework.includes('vite')) return 'vite preview';
   if (framework === 'hono' || framework === 'elysia') {
     return config.runtime === 'bun' ? 'bun src/index.ts' : 'node dist/index.js';
   }
-  return 'npm start';
+  return 'node dist/index.js'; // Generic safe fallback
 }
 
 function printSuccessSummary(config: StackConfig, deps: AdapterDependency[]): void {
+  const projectDir = config.projectDir || config.projectName || 'output';
   console.log('\n' + chalk.green.bold('  ✓ Project created successfully!') + '\n');
-  console.log(`  ${chalk.gray('Location:')} ${path.resolve(process.cwd(), config.projectName || 'output')}`);
+  console.log(`  ${chalk.gray('Location:')} ${path.resolve(process.cwd(), projectDir)}`);
   console.log(`  ${chalk.gray('Package manager:')} ${config.packageManager || 'npm'}\n`);
 
   const techs = deps.slice(0, 8).map(d => d.name).join(', ');
   console.log(`  ${chalk.gray('Key packages:')} ${techs}${deps.length > 8 ? '...' : ''}\n`);
 
   console.log('  ' + chalk.bold('Next steps:'));
-  console.log(`    ${chalk.cyan('cd ' + (config.projectName || 'output'))}`);
+  console.log(`    ${chalk.cyan('cd ' + projectDir)}`);
   console.log(`    ${chalk.cyan('cp .env.example .env')} # Fill in your values`);
   console.log(`    ${chalk.cyan(config.packageManager === 'bun' ? 'bun run dev' : config.packageManager === 'pnpm' ? 'pnpm dev' : 'npm run dev')}\n`);
 

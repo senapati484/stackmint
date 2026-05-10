@@ -1,4 +1,4 @@
-import { Adapter, AdapterFile, AdapterDependency } from './index.js';
+import { Adapter, AdapterFile, AdapterDependency, ADAPTER_REGISTRY } from './index.js';
 
 interface StackConfig {
   framework?: string;
@@ -315,7 +315,7 @@ coverage
     ],
   };
 
-  const { ADAPTER_REGISTRY } = require('./index.js');
+
   ADAPTER_REGISTRY.set('github-actions', githubActionsAdapter);
   ADAPTER_REGISTRY.set('husky', huskyAdapter);
   ADAPTER_REGISTRY.set('changesets', changesetsAdapter);

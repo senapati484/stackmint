@@ -1,6 +1,45 @@
 import type { StackConfig } from '../cli/types.js';
 
 export const PRESETS: Record<string, Partial<StackConfig>> = {
+  'react-vite': {
+    framework: 'react-vite',
+    styling: 'tailwind',
+    testing: 'vitest',
+    githubActions: true,
+    aiConfig: ['claude-code'],
+  },
+  'vue-vite': {
+    framework: 'vue-vite',
+    styling: 'tailwind',
+    testing: 'vitest',
+    githubActions: true,
+    aiConfig: ['claude-code'],
+  },
+  'svelte-vite': {
+    framework: 'svelte-vite',
+    styling: 'tailwind',
+    testing: 'vitest',
+    githubActions: true,
+    aiConfig: ['claude-code'],
+  },
+  'solid-vite': {
+    framework: 'solid-vite',
+    styling: 'tailwind',
+    testing: 'vitest',
+    githubActions: true,
+    aiConfig: ['claude-code'],
+  },
+  'api-hono': {
+    category: 'backend',
+    framework: 'hono',
+    orm: 'drizzle',
+    database: 'postgres',
+    validation: 'zod',
+    testing: 'vitest',
+    githubActions: true,
+    runtime: 'node',
+    aiConfig: ['claude-code'],
+  },
   't3-stack': {
     framework: 'nextjs',
     apiLayer: 'trpc',
@@ -55,19 +94,6 @@ export const PRESETS: Record<string, Partial<StackConfig>> = {
     githubActions: true,
     aiConfig: ['claude-code'],
   },
-  'api-hono': {
-    category: 'backend',
-    framework: 'hono',
-    orm: 'drizzle',
-    database: 'postgres',
-    apiLayer: 'orpc',
-    validation: 'zod',
-    auth: 'better-auth',
-    testing: 'vitest',
-    githubActions: true,
-    runtime: 'node',
-    aiConfig: ['claude-code'],
-  },
   'edge-worker': {
     category: 'backend',
     framework: 'hono',
@@ -114,11 +140,15 @@ export function listPresets(): void {
   console.log('  ' + '─'.repeat(70));
 
   const presetDescriptions: Record<string, { framework: string; addons: string }> = {
+    'react-vite': { framework: 'React + Vite', addons: 'Tailwind CSS + Vitest' },
+    'vue-vite': { framework: 'Vue + Vite', addons: 'Tailwind CSS + Vitest' },
+    'svelte-vite': { framework: 'Svelte + Vite', addons: 'Tailwind CSS + Vitest' },
+    'solid-vite': { framework: 'Solid + Vite', addons: 'Tailwind CSS + Vitest' },
+    'api-hono': { framework: 'Hono', addons: 'Drizzle + Zod + Tailwind' },
     't3-stack': { framework: 'Next.js 15', addons: 'tRPC + Drizzle + Tailwind + shadcn/ui + Zod + Better Auth' },
     'saas-nextjs': { framework: 'Next.js 15', addons: 'Better Auth + Drizzle + Stripe + Resend + RHF' },
     'saas-supabase': { framework: 'Next.js 15', addons: 'Supabase + Stripe + Resend + shadcn/ui' },
     'ai-app': { framework: 'Next.js 15', addons: 'Vercel AI SDK + Drizzle + Tailwind' },
-    'api-hono': { framework: 'Hono', addons: 'oRPC + Drizzle + Zod + Better Auth' },
     'edge-worker': { framework: 'Hono', addons: 'Turso + Upstash + Cloudflare Workers' },
     'content-astro': { framework: 'Astro SSG', addons: 'Tailwind CSS + Vitest' },
     'docs-vitepress': { framework: 'VitePress', addons: 'None — minimal docs setup' },

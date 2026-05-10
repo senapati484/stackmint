@@ -1,4 +1,4 @@
-import { Adapter, AdapterFile, AdapterDependency, AdapterEnvVar } from './index.js';
+import { Adapter, AdapterFile, AdapterDependency, AdapterEnvVar, ADAPTER_REGISTRY } from './index.js';
 
 interface StackConfig {
   framework?: string;
@@ -148,7 +148,6 @@ export type Database = any;
     postInstall: ["echo 'Add your Supabase project URL and anon key to .env.local'"],
   };
 
-  const { ADAPTER_REGISTRY } = require('./index.js');
   ADAPTER_REGISTRY.set('supabase', adapter);
 }
 
@@ -164,11 +163,12 @@ export function registerConvexAdapter(): void {
       {
         path: 'convex/schema.ts',
         content: `import { defineSchema, defineTable } from 'convex/server';
+import { v } from 'convex/values';
 
 export default defineSchema({
   users: defineTable({
-    name: string,
-    email: string,
+    name: v.string(),
+    email: v.string(),
   }).index('by_email', ['email']),
 });
 `,
@@ -176,6 +176,7 @@ export default defineSchema({
       {
         path: 'convex/users.ts',
         content: `import { query, mutation } from './_generated/server';
+import { v } from 'convex/values';
 
 export const list = query({
   args: {},
@@ -225,7 +226,6 @@ export function ConvexClientProvider({ children }: { children: ReactNode }) {
     postInstall: ['npx convex dev --once'],
   };
 
-  const { ADAPTER_REGISTRY } = require('./index.js');
   ADAPTER_REGISTRY.set('convex', adapter);
 }
 

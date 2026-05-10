@@ -1,4 +1,4 @@
-import { Adapter, AdapterFile, AdapterDependency } from './index.js';
+import { Adapter, AdapterFile, AdapterDependency, ADAPTER_REGISTRY } from './index.js';
 
 interface StackConfig {
   framework?: string;
@@ -81,7 +81,6 @@ export function registerTailwindAdapter(): void {
     ],
   };
 
-  const { ADAPTER_REGISTRY } = require('./index.js');
   ADAPTER_REGISTRY.set('tailwind', adapter);
 }
 
@@ -118,7 +117,6 @@ export function registerShadcnAdapter(): void {
     postInstall: ['npx shadcn@latest init --yes --defaults'],
   };
 
-  const { ADAPTER_REGISTRY } = require('./index.js');
   ADAPTER_REGISTRY.set('shadcn', adapter);
 }
 
@@ -172,7 +170,6 @@ export function QueryProvider({ children }: { children: ReactNode }) {
     ],
   };
 
-  const { ADAPTER_REGISTRY } = require('./index.js');
   ADAPTER_REGISTRY.set('tanstack-query', adapter);
 }
 
@@ -206,7 +203,6 @@ export const useCounterStore = create<CounterStore>((set) => ({
     ],
   };
 
-  const { ADAPTER_REGISTRY } = require('./index.js');
   ADAPTER_REGISTRY.set('zustand', adapter);
 }
 
@@ -255,7 +251,6 @@ export const useCounterStore = defineStore('counter', () => {
     ],
   };
 
-  const { ADAPTER_REGISTRY } = require('./index.js');
   ADAPTER_REGISTRY.set('pinia', adapter);
 }
 
@@ -315,7 +310,6 @@ export async function sendEmail({
     ],
   };
 
-  const { ADAPTER_REGISTRY } = require('./index.js');
   ADAPTER_REGISTRY.set('resend', adapter);
 }
 
@@ -398,7 +392,6 @@ export async function POST(req: Request) {
     ],
   };
 
-  const { ADAPTER_REGISTRY } = require('./index.js');
   ADAPTER_REGISTRY.set('stripe', adapter);
 }
 
@@ -441,7 +434,6 @@ export const ratelimit = new Ratelimit({
     ],
   };
 
-  const { ADAPTER_REGISTRY } = require('./index.js');
   ADAPTER_REGISTRY.set('upstash', adapter);
 }
 
@@ -489,7 +481,6 @@ afterEach(() => {
     ],
   };
 
-  const { ADAPTER_REGISTRY } = require('./index.js');
   ADAPTER_REGISTRY.set('vitest', adapter);
 }
 
@@ -549,7 +540,6 @@ test('health check endpoint', async ({ request }) => {
     postInstall: ['npx playwright install --with-deps chromium'],
   };
 
-  const { ADAPTER_REGISTRY } = require('./index.js');
   ADAPTER_REGISTRY.set('playwright', adapter);
 }
 

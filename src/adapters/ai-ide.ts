@@ -1,4 +1,4 @@
-import { Adapter, AdapterFile } from './index.js';
+import { Adapter, AdapterFile, ADAPTER_REGISTRY } from './index.js';
 
 interface StackConfig {
   framework?: string;
@@ -86,7 +86,6 @@ export function generateStackContext(config: StackConfig): string {
 }
 
 export function registerAIIDEAdapters(): void {
-  const { ADAPTER_REGISTRY } = require('./index.js');
 
   // AGENTS.md - Primary context file (always generated, used by Claude Code and OpenCode)
   ADAPTER_REGISTRY.set('claude-code', {

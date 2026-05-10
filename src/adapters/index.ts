@@ -25,6 +25,7 @@ export interface Adapter {
   scripts?: Record<string, string>;
   postInstall?: string[];
   conflictsWith?: string[];
+  condition?: (config: StackConfig) => boolean;
 }
 
 interface StackConfig {

@@ -1,4 +1,4 @@
-import { Adapter, AdapterFile, AdapterDependency, AdapterEnvVar } from './index.js';
+import { Adapter, AdapterFile, AdapterDependency, AdapterEnvVar, ADAPTER_REGISTRY } from './index.js';
 
 interface StackConfig {
   framework?: string;
@@ -44,6 +44,10 @@ export function registerBetterAuthAdapter(): void {
       const framework = config.framework || 'nextjs';
       const isNext = framework === 'nextjs' || framework === 'react-router-v7';
       const isSvelteKit = framework === 'sveltekit';
+      
+      let provider = 'pg';
+      if (config.database === 'mysql') provider = 'mysql';
+      else if (config.database === 'sqlite' || config.database === 'turso') provider = 'sqlite';
 
       const files: AdapterFile[] = [
         {
@@ -54,7 +58,7 @@ import { db } from './db';
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
-    provider: 'pg',
+    provider: '${provider}',
   }),
   emailAndPassword: {
     enabled: true,
@@ -117,7 +121,6 @@ export const POST: RequestHandler = toNodeHandler(auth).POST as RequestHandler;
     ],
   };
 
-  const { ADAPTER_REGISTRY } = require('./index.js');
   ADAPTER_REGISTRY.set('better-auth', adapter);
 }
 
@@ -199,7 +202,6 @@ export const load = async ({ request }: { request: Request }) => {
     ],
   };
 
-  const { ADAPTER_REGISTRY } = require('./index.js');
   ADAPTER_REGISTRY.set('clerk', adapter);
 }
 

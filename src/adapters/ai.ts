@@ -1,4 +1,4 @@
-import { Adapter, AdapterFile, AdapterDependency, AdapterEnvVar } from './index.js';
+import { Adapter, AdapterFile, AdapterDependency, AdapterEnvVar, ADAPTER_REGISTRY } from './index.js';
 
 interface StackConfig {
   framework?: string;
@@ -104,7 +104,6 @@ export async function POST(req: Request) {
     ],
   };
 
-  const { ADAPTER_REGISTRY } = require('./index.js');
   ADAPTER_REGISTRY.set('vercel-ai-sdk', vercelAISDKAdapter);
 }
 

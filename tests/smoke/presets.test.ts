@@ -9,6 +9,13 @@ test('presets are defined', () => {
   expect(Object.keys(PRESETS).length).toBeGreaterThan(0);
 });
 
+test('react-vite preset is defined', () => {
+  const preset = PRESETS['react-vite'];
+  expect(preset).toBeDefined();
+  expect(preset.framework).toBe('react-vite');
+  expect(preset.styling).toBe('tailwind');
+});
+
 test('t3-stack preset has required fields', () => {
   const preset = PRESETS['t3-stack'];
   expect(preset.framework).toBe('nextjs');

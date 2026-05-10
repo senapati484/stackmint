@@ -1,4 +1,4 @@
-import { Adapter, AdapterFile, AdapterDependency, AdapterEnvVar } from './index.js';
+import { Adapter, AdapterFile, AdapterDependency, AdapterEnvVar, ADAPTER_REGISTRY } from './index.js';
 
 interface StackConfig {
   framework?: string;
@@ -70,7 +70,9 @@ export function registerDrizzleAdapter(): void {
         deps.push({ name: 'pg', version: '^8.11.0' }, { name: '@types/pg', version: '^8.11.0', dev: true });
       } else if (config.database === 'mysql') {
         deps.push({ name: 'mysql2', version: '^3.6.0' });
-      } else if (config.database === 'sqlite' || config.database === 'turso') {
+      } else if (config.database === 'sqlite') {
+        deps.push({ name: 'better-sqlite3', version: '^11.0.0' }, { name: '@types/better-sqlite3', version: '^11.0.0', dev: true });
+      } else if (config.database === 'turso') {
         deps.push({ name: '@libsql/client', version: '^0.6.0' });
       } else if (config.database === 'neon') {
         deps.push({ name: '@neondatabase/serverless', version: '^0.9.0' });
@@ -92,7 +94,7 @@ export function registerDrizzleAdapter(): void {
     },
   };
 
-  const { ADAPTER_REGISTRY } = require('./index.js');
+
   ADAPTER_REGISTRY.set('drizzle', adapter);
 }
 
@@ -110,9 +112,12 @@ function getDrizzleDbContent(config: StackConfig): string {
       clientInit = "import mysql from 'mysql2/promise';\nconst pool = mysql.createPool(process.env.DATABASE_URL!);\nexport const db = drizzle(pool);";
       break;
     case 'sqlite':
-    case 'turso':
       importStatement = "import { drizzle } from 'drizzle-orm/better-sqlite3';";
       clientInit = "import Database from 'better-sqlite3';\nconst dbClient = new Database(process.env.DATABASE_URL!);\nexport const db = drizzle(dbClient);";
+      break;
+    case 'turso':
+      importStatement = "import { drizzle } from 'drizzle-orm/libsql';";
+      clientInit = "import { createClient } from '@libsql/client';\nconst dbClient = createClient({ url: process.env.DATABASE_URL! });\nexport const db = drizzle(dbClient);";
       break;
     case 'neon':
       importStatement = "import { drizzle } from 'drizzle-orm/neon-http';";
@@ -141,17 +146,16 @@ export const users = pgTable('users', {
 }
 
 function getDrizzleConfigContent(config: StackConfig): string {
-  let driver = 'pg';
-  if (config.database === 'mysql') driver = 'mysql2';
-  else if (config.database === 'sqlite' || config.database === 'turso') driver = 'libsql';
-  else if (config.database === 'neon') driver = 'neon-http';
+  let dialect = 'postgresql';
+  if (config.database === 'mysql') dialect = 'mysql';
+  else if (config.database === 'sqlite' || config.database === 'turso') dialect = 'sqlite';
 
   return `import { defineConfig } from 'drizzle-kit';
 
 export default defineConfig({
   schema: './src/db/schema/index.ts',
   out: './src/db/migrations',
-  dialect: \`\${driver}\`,
+  dialect: '${dialect}',
   dbCredentials: {
     url: process.env.DATABASE_URL!,
   },
@@ -207,7 +211,7 @@ if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
     postInstall: ['prisma generate'],
   };
 
-  const { ADAPTER_REGISTRY } = require('./index.js');
+
   ADAPTER_REGISTRY.set('prisma', adapter);
 }
 

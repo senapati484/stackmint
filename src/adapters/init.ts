@@ -9,9 +9,11 @@ import { initJobsAdapters } from '../adapters/jobs.js';
 import { initAIIDEAdapters } from '../adapters/ai-ide.js';
 import { initDevOpsAdapters } from '../adapters/devops.js';
 import { initAdditionalAdapters } from '../adapters/additional.js';
+import { initFrameworkAdapters } from '../adapters/frameworks.js';
 
 export function initAllAdapters(): void {
   try {
+    initFrameworkAdapters();
     initDatabaseAdapters();
     initBaaSAdapters();
     initAuthAdapters();

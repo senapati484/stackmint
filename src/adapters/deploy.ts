@@ -1,4 +1,4 @@
-import { Adapter, AdapterFile } from './index.js';
+import { Adapter, AdapterFile, ADAPTER_REGISTRY } from './index.js';
 
 interface StackConfig {
   framework?: string;
@@ -208,7 +208,7 @@ startCommand = \`\${getStartCommand(config) || 'npm start'}\`
     dependencies: () => [],
   };
 
-  const { ADAPTER_REGISTRY } = require('./index.js');
+
   ADAPTER_REGISTRY.set('deploy-vercel', vercelAdapter);
   ADAPTER_REGISTRY.set('deploy-cloudflare', cloudflareAdapter);
   ADAPTER_REGISTRY.set('deploy-flyio', flyioAdapter);

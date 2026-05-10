@@ -879,6 +879,121 @@ export default function RootLayout() {
   },
 });
 
+// Express Template
+registerTemplate({
+  id: 'express',
+  files: (config: StackConfig): AdapterFile[] => [
+    {
+      path: 'src/index.ts',
+      content: `import express from 'express';
+const app = express();
+const port = process.env.PORT || 3000;
+
+app.get('/', (req, res) => {
+  res.json({ message: 'Hello from Express' });
+});
+
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+app.listen(port, () => {
+  console.log(\`Server running on http://localhost:\${port}\`);
+});
+`,
+    },
+    {
+      path: 'tsconfig.json',
+      content: JSON.stringify({
+        compilerOptions: {
+          target: 'ES2022',
+          module: 'NodeNext',
+          moduleResolution: 'NodeNext',
+          strict: true,
+          esModuleInterop: true,
+          skipLibCheck: true,
+          outDir: 'dist'
+        },
+        include: ['src/**/*']
+      }, null, 2),
+    },
+  ],
+  scripts: {
+    dev: 'tsx watch src/index.ts',
+    build: 'tsup src/index.ts --format esm',
+    start: 'node dist/index.js',
+  },
+});
+
+// React Router v7 Template
+registerTemplate({
+  id: 'react-router-v7',
+  files: (config: StackConfig): AdapterFile[] => [
+    {
+      path: 'app/routes/_index.tsx',
+      content: `export default function Index() {
+  return (
+    <div style={{ padding: '2rem' }}>
+      <h1>Welcome to React Router v7</h1>
+      <p>Scaffolded with stackmint</p>
+    </div>
+  );
+}
+`,
+    },
+    {
+      path: 'react-router.config.ts',
+      content: `import type { Config } from '@react-router/dev/config';
+
+export default {
+  ssr: true,
+} satisfies Config;
+`,
+    },
+  ],
+  scripts: {
+    dev: 'react-router dev',
+    build: 'react-router build',
+    start: 'react-router-serve ./build/server/index.js',
+  },
+});
+
+// TanStack Start Template
+registerTemplate({
+  id: 'tanstack-start',
+  files: (config: StackConfig): AdapterFile[] => [
+    {
+      path: 'app/routes/index.tsx',
+      content: `import { createFileRoute } from '@tanstack/react-router';
+
+export const Route = createFileRoute('/')({
+  component: Home,
+});
+
+function Home() {
+  return (
+    <div className="p-2">
+      <h3>Welcome to TanStack Start!</h3>
+    </div>
+  );
+}
+`,
+    },
+    {
+      path: 'app.config.ts',
+      content: `import { defineConfig } from '@tanstack/react-start/config';
+
+export default defineConfig({});
+`,
+    },
+  ],
+  scripts: {
+    dev: 'vinxi dev',
+    build: 'vinxi build',
+    start: 'vinxi start',
+  },
+});
+
 // Nitro Template
 registerTemplate({
   id: 'nitro',
