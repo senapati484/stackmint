@@ -1,5 +1,9 @@
 [![stackmint Logo](/public/img/logo.png)](https://github.com/senapati484/stackmint)
 
+[![NPM Version](https://img.shields.io/npm/v/stackmint.svg)](https://www.npmjs.com/package/stackmint)
+[![NPM Downloads](https://img.shields.io/npm/dm/stackmint.svg)](https://www.npmjs.com/package/stackmint)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 > Scaffold any TypeScript full-stack project in seconds.
 
 ```bash
@@ -36,11 +40,15 @@ npx stackmint --list-presets
 
 | Preset | Framework | Key Add-ons |
 |--------|-----------|-------------|
+| `react-vite` | React + Vite | Tailwind CSS + Vitest |
+| `vue-vite` | Vue + Vite | Tailwind CSS + Vitest |
+| `svelte-vite` | Svelte + Vite | Tailwind CSS + Vitest |
+| `solid-vite` | Solid + Vite | Tailwind CSS + Vitest |
+| `api-hono` | Hono | Drizzle + Zod + Tailwind |
 | `t3-stack` | Next.js 15 | tRPC + Drizzle + Tailwind + shadcn/ui + Zod + Better Auth |
 | `saas-nextjs` | Next.js 15 | Better Auth + Drizzle + Stripe + Resend + RHF |
 | `saas-supabase` | Next.js 15 | Supabase + Stripe + Resend + shadcn/ui |
 | `ai-app` | Next.js 15 | Vercel AI SDK + Drizzle + Tailwind |
-| `api-hono` | Hono | oRPC + Drizzle + Zod + Better Auth |
 | `edge-worker` | Hono | Turso + Upstash + Cloudflare Workers |
 | `content-astro` | Astro SSG | Tailwind CSS + Vitest |
 | `docs-vitepress` | VitePress | Minimal docs setup |
