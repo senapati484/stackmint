@@ -1,8 +1,4 @@
-# stackmint
-
-<p align="center">
-  <img src="public/img/stackmint.png" alt="stackmint" width="200"/>
-</p>
+[![stackmint Logo](/public/img/stackmint.png)](https://github.com/senapati484/stackmint)
 
 > Scaffold any TypeScript full-stack project in seconds.
 
