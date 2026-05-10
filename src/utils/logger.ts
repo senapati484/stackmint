@@ -1,7 +1,7 @@
 import chalk from 'chalk';
 
 const intro = (title: string) => {
-  console.log(chalk.bold.rgb(99, 102, 241)(`◆ stackmint`) + ` ${title}`);
+  console.log(chalk.bold.rgb(99, 102, 241)('◆ stackmint') + ` ${title}`);
 };
 
 const step = (msg: string) => {
@@ -29,7 +29,7 @@ const deprecated = (framework: string, suggestion: string) => {
 };
 
 const conflict = (a: string, b: string, resolution: string) => {
-  console.log(chalk.keyword('orange')(`  ⚡ Conflict: ${a} + ${b} — ${resolution}`));
+  console.log(chalk.bgYellow.black('  ⚡ ') + ' ' + chalk.yellow(`Conflict: ${a} + ${b} — ${resolution}`));
 };
 
 const section = (label: string) => {

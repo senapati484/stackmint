@@ -32,6 +32,7 @@ export interface StackConfig {
   monorepo: boolean;
   monorepoApps?: string[];
   preset?: string;
+  [key: string]: unknown;
 }
 
 export interface FRAMEWORK_INFO {

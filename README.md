@@ -1,4 +1,8 @@
-[![stackmint Logo](/public/img/logo.png)](https://github.com/senapati484/stackmint)
+# stackmint
+
+<p align="center">
+  <img src="public/img/stackmint.png" alt="stackmint" width="200"/>
+</p>
 
 > Scaffold any TypeScript full-stack project in seconds.
 
@@ -13,7 +17,7 @@ npm create stackmint@latest
 - **34+ frameworks** supported
 - **50+ integrations** (ORMs, auth, AI, payments, etc.)
 - **9 presets** for common stacks
-- **AI IDE configs** (AGENTS.md, Claude Code, OpenCode, Cursor, Copilot, Windsurf, Continue.dev, Sourcegraph Cody, and more)
+- **11 AI IDE configs** (Claude Code, OpenCode, Cursor, Copilot, Windsurf, Continue.dev, Sourcegraph Cody, and more)
 - **Conflict resolution** with smart defaults
 
 ## Quick Start
@@ -86,6 +90,22 @@ Options:
 - **Jobs**: Inngest, BullMQ, Trigger.dev
 - **Payments**: Stripe
 - **Email**: Resend, Nodemailer
+
+## AI IDE Support
+
+| AI IDE | Config File |
+|--------|-------------|
+| Claude Code / OpenCode | `AGENTS.md` (auto-generated) |
+| Cursor | `.cursor/rules/stack.mdc` |
+| OpenCode | `.opencode/CLAUDE.md` |
+| Continue.dev | `.continue/config.json` |
+| Sourcegraph Cody | `.cody/commands.json` |
+| GitHub Copilot | `.github/copilot-instructions.md` |
+| Windsurf | `.windsurf/rules.md` |
+| Replit Agent | `.replit` + `REPLIT.md` |
+| Kotata | `.kotata/context.md` |
+| LLM Coding | `.claude/llm-conventions.md` |
+| Devin | `.devin/context.md` |
 
 ## How It Works
 

@@ -1,5 +1,5 @@
 import { StackConfig } from '../cli/types.js';
-import { ADAPTER_REGISTRY, getAdapter, getAdapters, AdapterFile, AdapterDependency, AdapterEnvVar } from '../adapters/index.js';
+import { ADAPTER_REGISTRY, getAdapter, AdapterFile, AdapterDependency, AdapterEnvVar } from '../adapters/index.js';
 import { resolveConflicts } from './resolver.js';
 import { log } from '../utils/logger.js';
 import { writeProject } from './writer.js';

@@ -16,6 +16,7 @@ jobs:
           node-version: '20'
           cache: 'npm'
       - run: npm ci
+      - run: npm run lint
 
   typecheck:
     runs-on: ubuntu-latest
@@ -26,7 +27,7 @@ jobs:
           node-version: '20'
           cache: 'npm'
       - run: npm ci
-      - run: npx tsc --noEmit
+      - run: npm run typecheck
 
   test:
     runs-on: ubuntu-latest

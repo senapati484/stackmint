@@ -1,4 +1,3 @@
-import type { Partial } from 'zod';
 import type { StackConfig } from '../cli/types.js';
 
 export const PRESETS: Record<string, Partial<StackConfig>> = {

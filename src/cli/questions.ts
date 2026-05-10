@@ -1,6 +1,7 @@
 import { cancel, confirm, select, text } from '@clack/prompts';
 import { StackConfig, FRAMEWORKS } from './types.js';
 import { log } from '../utils/logger.js';
+import chalk from 'chalk';
 
 function isValidPackageName(name: string): boolean {
   return /^[a-z0-9-]+$/.test(name) && !name.startsWith('-') && !name.includes(' ');
@@ -322,7 +323,7 @@ export async function askAddons(config: Partial<StackConfig>): Promise<Partial<S
     if (canceled(styling)) return exitWithMessage();
     result.styling = styling as StackConfig['styling'];
 
-    if (result.styling !== 'none' && result.category !== 'backend') {
+    if (result.styling !== 'none' && (result.category as string) !== 'backend') {
       const uiOptions: { value: string; label: string; hint?: string }[] = [];
       if (result.styling === 'tailwind') {
         uiOptions.push({ value: 'shadcn', label: 'shadcn/ui', hint: 'copy-paste components, Tailwind required' });
