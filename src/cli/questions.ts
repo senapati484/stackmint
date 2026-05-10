@@ -1,4 +1,4 @@
-import { cancel, confirm, select, text } from '@clack/prompts';
+import { cancel, confirm, select, text, multiselect } from '@clack/prompts';
 import { StackConfig, FRAMEWORKS } from './types.js';
 import { log } from '../utils/logger.js';
 import chalk from 'chalk';
@@ -486,14 +486,13 @@ export async function askAddons(config: Partial<StackConfig>): Promise<Partial<S
     { value: 'devin', label: 'Devin (Cognition)', hint: 'Devin AI agent context' },
   ];
 
-  const aiConfig: StackConfig['aiConfig'] = ['claude-code'];
-  for (const opt of aiIdeOptions) {
-    if (opt.value === 'claude-code') continue;
-    const selected = await confirm({ message: 'Generate ' + opt.label + ' context file?' });
-    if (canceled(selected)) return exitWithMessage();
-    if (selected) aiConfig.push(opt.value as StackConfig['aiConfig'][number]);
-  }
-  result.aiConfig = aiConfig;
+  const selectedAiConfig = await multiselect({
+    message: 'Generate AI context files for?',
+    options: aiIdeOptions,
+    required: false,
+  });
+  if (canceled(selectedAiConfig)) return exitWithMessage();
+  result.aiConfig = selectedAiConfig as StackConfig['aiConfig'];
 
   return result;
 }
