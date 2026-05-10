@@ -1,0 +1,64 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:base"],
+  "schedule": "every week on monday",
+  "automerge": true,
+  "automergeType": "branch",
+  "automergeStrategy": "rebase",
+  "groupName": "all",
+  "packageRules": [
+    {
+      "matchPackagePatterns": ["*"],
+      "groupName": "all dependencies",
+      "automerge": false,
+      "requireStatusChecks": true
+    },
+    {
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "automerge": true,
+      "automergeType": "branch"
+    },
+    {
+      "matchPackagePatterns": [
+        "hono", "elysia", "fastify", "nestjs", "express", "nitro", "bun"
+      ],
+      "groupName": "framework packages",
+      "groupSlug": "frameworks"
+    },
+    {
+      "matchPackagePatterns": ["drizzle-orm", "drizzle-kit", "@prisma/client", "prisma"],
+      "groupName": "database packages",
+      "groupSlug": "database"
+    },
+    {
+      "matchPackagePatterns": ["better-auth", "@clerk/nextjs"],
+      "groupName": "auth packages",
+      "groupSlug": "auth"
+    },
+    {
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
+      "labels": ["major", "needs-review"]
+    }
+  ],
+  "customManagers": [
+    {
+      "fileMatch": ["src/adapters/**/*.ts", "scripts/check-ecosystem.ts"],
+      "matchStrings": ["// renovate: dep=(\\w)"],
+      "depNameTemplate": "{{matches}}",
+      "datasourceTemplate": "npm"
+    }
+  ],
+  "labels": ["renovate"],
+  "postUpgradeTasks": {
+    "commands": ["bun run build"],
+    "fileFilters": ["**/*.ts"],
+    "executionMode": "immediate"
+  },
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "automerge": true
+  },
+  "ignoreDeps": ["node", "typescript"]
+}

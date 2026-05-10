@@ -1,0 +1,209 @@
+import { Adapter, AdapterFile, AdapterDependency, AdapterEnvVar } from './index.js';
+
+interface StackConfig {
+  framework?: string;
+  database?: string;
+  runtime?: string;
+  packageManager?: string;
+  deployTarget?: string;
+  baas?: string;
+  orm?: string;
+  auth?: string;
+  apiLayer?: string;
+  validation?: string;
+  styling?: string;
+  uiLibrary?: string;
+  forms?: string;
+  stateManagement?: string;
+  dataFetching?: string;
+  ai?: string;
+  jobs?: string;
+  cache?: string;
+  email?: string;
+  payments?: string;
+  testing?: string;
+  docker?: boolean;
+  githubActions?: boolean;
+  husky?: boolean;
+  changesets?: boolean;
+  turborepo?: boolean;
+  aiConfig?: string[];
+  category?: string;
+  projectName?: string;
+  monorepo?: boolean;
+  monorepoApps?: string[];
+  preset?: string;
+  [key: string]: unknown;
+}
+
+export function registerBetterAuthAdapter(): void {
+  const adapter: Adapter = {
+    id: 'better-auth',
+    name: 'Better Auth',
+    files: (config: StackConfig): AdapterFile[] => {
+      const framework = config.framework || 'nextjs';
+      const isNext = framework === 'nextjs' || framework === 'react-router-v7';
+      const isSvelteKit = framework === 'sveltekit';
+
+      const files: AdapterFile[] = [
+        {
+          path: 'src/lib/auth.ts',
+          content: `import { betterAuth } from 'better-auth';
+import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import { db } from './db';
+
+export const auth = betterAuth({
+  database: drizzleAdapter(db, {
+    provider: 'pg',
+  }),
+  emailAndPassword: {
+    enabled: true,
+  },
+  socialProviders: {
+    // Add your OAuth providers here
+  },
+});
+`,
+        },
+        {
+          path: 'src/lib/auth-client.ts',
+          content: `import { createAuthClient } from 'better-auth/react';
+
+export const authClient = createAuthClient({
+  baseURL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL || 'http://localhost:3000',
+});
+`,
+        },
+      ];
+
+      if (isNext) {
+        files.push({
+          path: 'src/app/api/auth/[...all]/route.ts',
+          content: `import { auth } from '@/lib/auth';
+import { toNextJsHandler } from 'better-auth/next-js';
+
+export const { GET, POST } = toNextJsHandler(auth);
+`,
+        });
+      } else if (isSvelteKit) {
+        files.push({
+          path: 'src/routes/api/auth/[...all]/+server.ts',
+          content: `import { auth } from '$lib/server/auth';
+import { toNodeHandler } from 'better-auth/node';
+import type { RequestHandler } from './$types';
+
+export const GET: RequestHandler = toNodeHandler(auth).GET as RequestHandler;
+export const POST: RequestHandler = toNodeHandler(auth).POST as RequestHandler;
+`,
+        });
+      }
+
+      return files;
+    },
+    dependencies: (): AdapterDependency[] => [
+      { name: 'better-auth', version: '^1.0.0' },
+    ],
+    envVars: (): AdapterEnvVar[] => [
+      {
+        key: 'BETTER_AUTH_SECRET',
+        value: 'generate-a-random-secret-here',
+        comment: 'Generate with: openssl rand -base64 32',
+      },
+      {
+        key: 'BETTER_AUTH_URL',
+        value: 'http://localhost:3000',
+        comment: 'Your application URL',
+      },
+    ],
+  };
+
+  const { ADAPTER_REGISTRY } = require('./index.js');
+  ADAPTER_REGISTRY.set('better-auth', adapter);
+}
+
+export function registerClerkAdapter(): void {
+  const adapter: Adapter = {
+    id: 'clerk',
+    name: 'Clerk',
+    files: (config: StackConfig): AdapterFile[] => {
+      const framework = config.framework || 'nextjs';
+      const isNext = framework === 'nextjs';
+      const isSvelteKit = framework === 'sveltekit';
+
+      const files: AdapterFile[] = [];
+
+      if (isNext) {
+        files.push(
+          {
+            path: 'src/middleware.ts',
+            content: `import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+
+const isPublicRoute = createRouteMatcher(['/', '/api/health']);
+
+export default clerkMiddleware((auth, req) => {
+  if (!isPublicRoute(req)) {
+    auth().protect();
+  }
+});
+
+export const config = {
+  matcher: ['/((?!.*\\\\..*|_next).*)', '/', '/(api|trpc)(.*)'],
+};
+`,
+          },
+          {
+            path: 'src/lib/clerk.ts',
+            content: `import { currentUser } from '@clerk/nextjs/server';
+
+export async function getCurrentUser() {
+  return await currentUser();
+}
+`,
+          }
+        );
+      } else if (isSvelteKit) {
+        files.push({
+          path: 'src/hooks.server.ts',
+          content: `import { clerkClient } from '@clerk/fetch-node';
+
+export const load = async ({ request }: { request: Request }) => {
+  const user = await clerkClient.users.getUserList();
+  return { user };
+};
+`,
+        });
+      }
+
+      return files;
+    },
+    dependencies: (config: StackConfig): AdapterDependency[] => {
+      const deps: AdapterDependency[] = [];
+      if (config.framework === 'nextjs') {
+        deps.push({ name: '@clerk/nextjs', version: '^5.0.0' });
+      } else if (config.framework === 'sveltekit') {
+        deps.push({ name: '@clerk/sveltekit', version: '^1.0.0' });
+      }
+      return deps;
+    },
+    envVars: (): AdapterEnvVar[] => [
+      {
+        key: 'NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY',
+        value: 'pk_test_...',
+        comment: 'Your Clerk publishable key',
+      },
+      {
+        key: 'CLERK_SECRET_KEY',
+        value: 'sk_test_...',
+        comment: 'Your Clerk secret key',
+      },
+    ],
+  };
+
+  const { ADAPTER_REGISTRY } = require('./index.js');
+  ADAPTER_REGISTRY.set('clerk', adapter);
+}
+
+export function initAuthAdapters(): void {
+  registerBetterAuthAdapter();
+  registerClerkAdapter();
+}

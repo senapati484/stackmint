@@ -1,0 +1,20 @@
+name: Template Smoke Tests
+
+on:
+  pull_request:
+
+jobs:
+  smoke:
+    strategy:
+      matrix:
+        preset: ['t3-stack', 'saas-nextjs', 'saas-supabase', 'ai-app', 'api-hono', 'edge-worker', 'content-astro', 'docs-vitepress', 'realtime-convex']
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: node bin/stackmint.js --preset ${{ matrix.preset }} --output ./test-${{ matrix.preset }} --no-install
+      - run: cd test-${{ matrix.preset }} && npx tsc --noEmit
