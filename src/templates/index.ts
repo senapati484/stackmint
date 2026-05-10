@@ -76,7 +76,7 @@ export default function RootLayout({
       <footer className="mt-16 pt-8 border-t text-sm text-muted-foreground">
         Scaffolded with{' '}
         <a
-          href="https://stackmint.dev"
+          href="https://stackmint-docs.vercel.app"
           target="_blank"
           rel="noopener noreferrer"
           className="font-medium underline underline-offset-4 hover:text-foreground"
@@ -302,7 +302,7 @@ registerTemplate({
   <h1 class="text-4xl font-bold">{title}</h1>
   <p class="mt-4">Get started by editing src/routes/+page.svelte</p>
   <footer class="mt-16 pt-8 border-t text-sm text-gray-500">
-    Scaffolded with <a href="https://stackmint.dev" target="_blank" rel="noopener noreferrer" class="underline hover:text-gray-800">stackmint</a>
+    Scaffolded with <a href="https://stackmint-docs.vercel.app" target="_blank" rel="noopener noreferrer" class="underline hover:text-gray-800">stackmint</a>
     — scaffold any TypeScript stack in seconds.
   </footer>
 </main>
@@ -364,15 +364,15 @@ export default defineConfig({
       content: JSON.stringify({
         extends: './.svelte-kit/tsconfig.json',
         compilerOptions: {
-            allowJs: true,
-            checkJs: true,
-            esModuleInterop: true,
-            forceConsistentCasingInFileNames: true,
-            resolveJsonModule: true,
-            skipLibCheck: true,
-            sourceMap: true,
-            strict: true,
-            moduleResolution: 'bundler'
+          allowJs: true,
+          checkJs: true,
+          esModuleInterop: true,
+          forceConsistentCasingInFileNames: true,
+          resolveJsonModule: true,
+          skipLibCheck: true,
+          sourceMap: true,
+          strict: true,
+          moduleResolution: 'bundler'
         }
       }, null, 2),
     },
@@ -408,7 +408,7 @@ const title = 'Welcome to Nuxt';
     <p class="mt-4">Get started by editing pages/index.vue</p>
     <footer class="mt-16 pt-8 border-t text-sm text-gray-500">
       Scaffolded with
-      <a href="https://stackmint.dev" target="_blank" rel="noopener noreferrer" class="underline hover:text-gray-800">
+      <a href="https://stackmint-docs.vercel.app" target="_blank" rel="noopener noreferrer" class="underline hover:text-gray-800">
         stackmint
       </a>
       — scaffold any TypeScript stack in seconds.
@@ -477,7 +477,7 @@ const title = 'Welcome to Astro';
       <h1>{title}</h1>
       <p>Get started by editing src/pages/index.astro</p>
       <footer style="margin-top: 4rem; padding-top: 2rem; border-top: 1px solid #ccc; font-size: 0.875rem; color: #666;">
-        Scaffolded with <a href="https://stackmint.dev" target="_blank" rel="noopener noreferrer" style="text-decoration: underline;">stackmint</a>
+        Scaffolded with <a href="https://stackmint-docs.vercel.app" target="_blank" rel="noopener noreferrer" style="text-decoration: underline;">stackmint</a>
         — scaffold any TypeScript stack in seconds.
       </footer>
     </main>
@@ -548,7 +548,7 @@ const title = 'Welcome to Astro';
       <h1>{title}</h1>
       <p>Get started by editing src/pages/index.astro</p>
       <footer style="margin-top: 4rem; padding-top: 2rem; border-top: 1px solid #ccc; font-size: 0.875rem; color: #666;">
-        Scaffolded with <a href="https://stackmint.dev" target="_blank" rel="noopener noreferrer" style="text-decoration: underline;">stackmint</a>
+        Scaffolded with <a href="https://stackmint-docs.vercel.app" target="_blank" rel="noopener noreferrer" style="text-decoration: underline;">stackmint</a>
         — scaffold any TypeScript stack in seconds.
       </footer>
     </main>
@@ -640,7 +640,7 @@ console.log('Hello World');
 
 ---
 
-*Scaffolded with [stackmint](https://stackmint.dev) — scaffold any TypeScript stack in seconds.*
+*Scaffolded with [stackmint](https://stackmint-docs.vercel.app) — scaffold any TypeScript stack in seconds.*
 `,
     },
     {
@@ -684,7 +684,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <h1 className="text-4xl font-bold">Welcome to React + Vite</h1>
       <p className="mt-4">Get started by editing src/App.tsx</p>
       <footer className="mt-16 pt-8 border-t text-sm text-gray-500">
-        Scaffolded with <a href="https://stackmint.dev" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-800">stackmint</a>
+        Scaffolded with <a href="https://stackmint-docs.vercel.app" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-800">stackmint</a>
         {' '}— scaffold any TypeScript stack in seconds.
       </footer>
     </div>
@@ -786,7 +786,7 @@ export default function Home() {
       <Text style={styles.subtitle}>Get started by editing app/(tabs)/index.tsx</Text>
       <View style={styles.footer}>
         <Text style={styles.footerText}>
-          Scaffolded with stackmint (https://stackmint.dev)
+          Scaffolded with stackmint (https://stackmint-docs.vercel.app)
         </Text>
       </View>
     </View>
@@ -836,34 +836,34 @@ export default function RootLayout() {
   );
 }
 `,
-},
+    },
     {
       path: 'app.json',
-        content: JSON.stringify({
-          expo: {
-            name: config.projectName || 'my-app',
-            slug: config.projectName || 'my-app',
-            version: '1.0.0',
-            scheme: config.projectName || 'my-app',
-          },
-          splash: {
-            image: './assets/splash.png',
-            resizeMode: 'contain',
+      content: JSON.stringify({
+        expo: {
+          name: config.projectName || 'my-app',
+          slug: config.projectName || 'my-app',
+          version: '1.0.0',
+          scheme: config.projectName || 'my-app',
+        },
+        splash: {
+          image: './assets/splash.png',
+          resizeMode: 'contain',
+          backgroundColor: '#ffffff'
+        },
+        ios: {
+          supportsTablet: true
+        },
+        android: {
+          adaptiveIcon: {
+            foregroundImage: './assets/adaptive-icon.png',
             backgroundColor: '#ffffff'
-          },
-          ios: {
-            supportsTablet: true
-          },
-          android: {
-            adaptiveIcon: {
-              foregroundImage: './assets/adaptive-icon.png',
-              backgroundColor: '#ffffff'
-            }
-          },
-          plugins: [
-            'expo-router'
-          ]
-        }, null, 2),
+          }
+        },
+        plugins: [
+          'expo-router'
+        ]
+      }, null, 2),
     },
     {
       path: 'tsconfig.json',
