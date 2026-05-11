@@ -4,7 +4,7 @@
   "description": "Scaffold any TypeScript full-stack project in seconds",
   "type": "module",
   "bin": {
-    "stackmint": "./dist/bin/stackmint.js"
+    "stackmint": "dist/bin/stackmint.js"
   },
   "files": [
     "dist",
@@ -38,7 +38,7 @@
   "author": "Sayansenapati",
   "repository": {
     "type": "git",
-    "url": "https://github.com/senapati484/stackmint"
+    "url": "git+https://github.com/senapati484/stackmint.git"
   },
   "bugs": {
     "url": "https://github.com/senapati484/stackmint/issues"
