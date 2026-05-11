@@ -1,6 +1,6 @@
 {
   "name": "stackmint",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Scaffold any TypeScript full-stack project in seconds",
   "type": "module",
   "bin": {
