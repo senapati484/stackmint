@@ -186,10 +186,15 @@ export function registerTanStackStartAdapter(): void {
     name: 'TanStack Start',
     files: (): AdapterFile[] => [],
     dependencies: (): AdapterDependency[] => [
-      { name: '@tanstack/react-start', version: '^0.0.1' },
-      { name: 'react', version: '^18.2.0' },
-      { name: 'react-dom', version: '^18.2.0' },
-      { name: 'typescript', version: '^5.3.0', dev: true },
+      { name: '@tanstack/react-start', version: '^1.0.0' },
+      { name: '@tanstack/react-router', version: '^1.0.0' },
+      { name: 'react', version: '^19.0.0' },
+      { name: 'react-dom', version: '^19.0.0' },
+      { name: 'vinxi', version: 'latest' },
+      { name: 'tailwindcss', version: '^4.0.0', dev: true },
+      { name: '@tailwindcss/vite', version: '^4.0.0', dev: true },
+      { name: 'vite-tsconfig-paths', version: '^5.1.0', dev: true },
+      { name: 'typescript', version: '^5.5.0', dev: true },
     ],
     condition: (config: StackConfig) => config.framework === 'tanstack-start',
   };
@@ -334,13 +339,43 @@ export function registerAngularFrameworkAdapter(): void {
     id: 'angular-framework',
     name: 'Angular Framework',
     files: (): AdapterFile[] => [],
-    dependencies: (): AdapterDependency[] => [
-      { name: '@angular/core', version: '^17.0.0' },
-      { name: '@angular/platform-browser', version: '^17.0.0' },
-      { name: 'rxjs', version: '^7.0.0' },
-      { name: 'typescript', version: '^5.3.0', dev: true },
-    ],
-    condition: (config: StackConfig) => config.framework === 'angular',
+    dependencies: (config: StackConfig): AdapterDependency[] => {
+      if (config.framework === 'analog') {
+        return [
+          { name: '@analogjs/platform', version: '^1.0.0' },
+          { name: '@analogjs/router', version: '^1.0.0' },
+          { name: '@angular/core', version: '^19.0.0' },
+          { name: '@angular/common', version: '^19.0.0' },
+          { name: '@angular/compiler', version: '^19.0.0' },
+          { name: '@angular/platform-browser', version: '^19.0.0' },
+          { name: '@angular/platform-browser-dynamic', version: '^19.0.0' },
+          { name: '@angular/platform-server', version: '^19.0.0' },
+          { name: '@angular/router', version: '^19.0.0' },
+          { name: 'rxjs', version: '^7.8.0' },
+          { name: 'zone.js', version: '~0.15.0' },
+          { name: 'typescript', version: '^5.5.0', dev: true },
+          { name: 'vite', version: '^6.0.0', dev: true },
+        ];
+      }
+      return [
+        { name: '@angular/core', version: '^19.0.0' },
+        { name: '@angular/common', version: '^19.0.0' },
+        { name: '@angular/compiler', version: '^19.0.0' },
+        { name: '@angular/platform-browser', version: '^19.0.0' },
+        { name: '@angular/platform-browser-dynamic', version: '^19.0.0' },
+        { name: '@angular/router', version: '^19.0.0' },
+        { name: '@angular/forms', version: '^19.0.0' },
+        { name: '@angular/common', version: '^19.0.0' },
+        { name: 'rxjs', version: '^7.8.0' },
+        { name: 'zone.js', version: '~0.15.0' },
+        { name: 'tslib', version: '^2.6.0' },
+        { name: 'typescript', version: '^5.5.0', dev: true },
+        { name: '@angular/cli', version: '^19.0.0', dev: true },
+        { name: '@angular/compiler-cli', version: '^19.0.0', dev: true },
+        { name: '@angular-devkit/build-angular', version: '^19.0.0', dev: true },
+      ];
+    },
+    condition: (config: StackConfig) => config.framework === 'angular' || config.framework === 'analog',
   };
 
 
