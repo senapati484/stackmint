@@ -1162,6 +1162,17 @@ export default nextConfig;
 registerTemplate({
   id: 'hono',
   files: (config: StackConfig): AdapterFile[] => {
+    const landingHTML = getStaticFrontendMarkup({
+      framework: 'Hono',
+      runtime: 'Hono',
+      styling: 'HTML/CSS',
+      build: 'API Server',
+      detail: 'Lightweight, multi-runtime framework',
+      editPath: 'src/index.ts',
+      actionHref: '/api/health',
+      actionLabel: 'Check API Health',
+    });
+
     const files: AdapterFile[] = [
       {
         path: 'src/index.ts',
@@ -1175,8 +1186,13 @@ const app = new Hono();
 app.use('*', cors());
 app.use('*', logger());
 
-app.get('/', (c) => c.json({ message: 'Hello from ' + (config.projectName || 'hono') }));
-app.get('/api/health', (c) => c.json({ status: 'ok', timestamp: new Date().toISOString() }));
+app.get('/', (c) => c.html('${landingHTML.replace(/'/g, "\\'")}'));
+app.get('/api/health', (c) => c.json({ 
+  status: 'ok',
+  framework: 'hono',
+  runtime: 'bun',
+  timestamp: new Date().toISOString() 
+}));
 
 Bun.serve({ fetch: app.fetch, port: 3000 });
 console.log('Server running on http://localhost:3000');
@@ -1190,8 +1206,12 @@ const app = new Hono();
 app.use('*', cors());
 app.use('*', logger());
 
-app.get('/', (c) => c.json({ message: 'Hello from ' + (config.projectName || 'hono') }));
-app.get('/api/health', (c) => c.json({ status: 'ok', timestamp: new Date().toISOString() }));
+app.get('/', (c) => c.html('${landingHTML.replace(/'/g, "\\'")}'));
+app.get('/api/health', (c) => c.json({ 
+  status: 'ok',
+  framework: 'hono',
+  timestamp: new Date().toISOString()
+}));
 
 export default app;
 `,
@@ -1199,11 +1219,11 @@ export default app;
       getStackmintLogoFile(),
       {
         path: 'src/routes/index.ts',
-        content: '',
+        content: '// Add your routes here',
       },
       {
         path: 'src/middleware/index.ts',
-        content: '',
+        content: '// Add your middleware here',
       },
       {
         path: 'tsconfig.json',
@@ -1231,8 +1251,7 @@ export default app;
 export const healthSchema = z.object({
   status: z.string(),
   timestamp: z.string(),
-});
-`,
+});`,
       });
     }
 
@@ -2047,14 +2066,16 @@ registerTemplate({
   files: (): AdapterFile[] => [
     {
       path: 'src/main.tsx',
-      content: `<script setup lang=\"ts\">
-import { ref } from 'vue';
-import App from './App.vue';
+      content: `import { render } from 'solid-js/web';
+import App from './App';
 import './styles/globals.css';
 import './styles/app.css';
 
-createApp(App).mount('#app');
-</script>`,
+const root = document.getElementById('root');
+if (root) {
+  render(() => <App />, root);
+}
+`,
     },
     {
       path: 'src/App.tsx',
@@ -2565,45 +2586,80 @@ export default function RootLayout() {
 // Express Template
 registerTemplate({
   id: 'express',
-  files: (config: StackConfig): AdapterFile[] => [
-    {
-      path: 'src/index.ts',
-      content: `import express from 'express';
+  files: (config: StackConfig): AdapterFile[] => {
+    const landingHTML = getStaticFrontendMarkup({
+      framework: 'Express',
+      runtime: 'Express.js',
+      styling: 'HTML/CSS',
+      build: 'API Server',
+      detail: 'Production-grade Node.js framework',
+      editPath: 'src/index.ts',
+      actionHref: '/api/health',
+      actionLabel: 'Check API Health',
+    });
+
+    return [
+      {
+        path: 'src/index.ts',
+        content: `import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
 const app = express();
 const port = process.env.PORT || 3000;
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+app.use(express.static(path.join(__dirname, '../public')));
+
 app.get('/', (req, res) => {
-  res.json({ message: 'Hello from Express' });
+  res.send('${landingHTML.replace(/'/g, "\\'")}');
 });
 
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.json({ 
+    status: 'ok', 
+    framework: 'express',
+    timestamp: new Date().toISOString(),
+    app: '${config.projectName || 'my-api'}'
+  });
 });
 
 app.listen(port, () => {
   console.log(\`Server running on http://localhost:\${port}\`);
 });
 `,
-    },
-    {
-      path: 'tsconfig.json',
-      content: JSON.stringify({
-        compilerOptions: {
-          target: 'ES2022',
-          module: 'NodeNext',
-          moduleResolution: 'NodeNext',
-          strict: true,
-          esModuleInterop: true,
-          skipLibCheck: true,
-          outDir: 'dist'
-        },
-        include: ['src/**/*']
-      }, null, 2),
-    },
-  ],
+      },
+      {
+        path: 'tsconfig.json',
+        content: JSON.stringify({
+          compilerOptions: {
+            target: 'ES2022',
+            module: 'ES2022',
+            moduleResolution: 'bundler',
+            strict: true,
+            esModuleInterop: true,
+            skipLibCheck: true,
+            forceConsistentCasingInFileNames: true,
+            resolveJsonModule: true,
+            outDir: 'dist',
+            rootDir: 'src',
+          },
+          include: ['src/**/*'],
+          exclude: ['node_modules', 'dist']
+        }, null, 2),
+      },
+      {
+        path: 'public/.gitkeep',
+        content: '',
+      },
+      getStackmintLogoFile(),
+    ];
+  },
   scripts: {
     dev: 'tsx watch src/index.ts',
-    build: 'tsup src/index.ts --format esm',
+    build: 'tsup src/index.ts --format esm --outDir dist',
     start: 'node dist/index.js',
   },
 });
@@ -2614,15 +2670,144 @@ registerTemplate({
   files: (config: StackConfig): AdapterFile[] => [
     {
       path: 'app/routes/_index.tsx',
-      content: `export default function Index() {
+      content: `import { useState } from 'react';
+
+const signals = [
+  { label: 'Runtime', value: 'React Router v7', detail: 'File-based routing with React' },
+  { label: 'Styling', value: 'Tailwind v4', detail: 'Utility-first CSS framework' },
+  { label: 'Build', value: 'SSR Ready', detail: 'Server-side rendering capable' },
+];
+
+export default function Index() {
+  const [launches, setLaunches] = useState(1);
+
   return (
-    <div style={{ padding: '2rem' }}>
-      <h1>Welcome to React Router v7</h1>
-      <p>Scaffolded with stackmint</p>
+    <div className="stackmint-shell">
+      <header className="topbar">
+        <a className="brand-mark" href="https://stackmint-docs.vercel.app" target="_blank" rel="noreferrer">
+          <span className="brand-glyph">S</span>
+          <span className="brand-name">
+            <strong>stackmint</strong>
+            <span>TypeScript starter</span>
+          </span>
+        </a>
+        <a className="topbar-link" href="https://github.com/senapati484/stackmint" target="_blank" rel="noreferrer">
+          GitHub
+        </a>
+      </header>
+
+      <main className="hero">
+        <section className="hero-copy" aria-labelledby="hero-title">
+          <span className="eyebrow"><span className="pulse" /> Prebuilt frontend template</span>
+          <h1 id="hero-title">
+            Shape your <span className="accent">React Router</span> launch surface.
+          </h1>
+          <p className="hero-lede">
+            A polished stackmint canvas with the real brand artwork, responsive panels,
+            and a consistent layout ready to mirror across every frontend framework.
+          </p>
+
+          <div className="actions">
+            <button className="button button-primary" type="button" onClick={() => setLaunches((value) => value + 1)}>
+              Launch pulse {launches}
+            </button>
+            <a className="button button-secondary" href="https://stackmint-docs.vercel.app" target="_blank" rel="noreferrer">
+              Open docs
+            </a>
+          </div>
+
+          <div className="signal-grid" aria-label="Template highlights">
+            {signals.map((signal) => (
+              <article className="signal-card" key={signal.label}>
+                <span>{signal.label}</span>
+                <strong>{signal.value}</strong>
+                <p>{signal.detail}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="hero-visual" aria-label="stackmint preview">
+          <div className="logo-stage">
+            <img className="logo-image" src="/logo.png" alt="stackmint" />
+          </div>
+          <aside className="framework-card">
+            <span>Framework section</span>
+            <strong>React Router v7</strong>
+            <p>React, React Router v7, TypeScript, and Tailwind v4 are ready.</p>
+          </aside>
+
+          <div className="status-row">
+            <div className="mini-panel">
+              <span>Edit surface</span>
+              <strong><code>app/routes/_index.tsx</code></strong>
+            </div>
+            <div className="mini-panel">
+              <span>Dev server</span>
+              <strong><code>npm run dev</code></strong>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer className="footer-note">
+        Built with stackmint. Keep this layout and swap the framework section as new templates come online.
+      </footer>
     </div>
   );
 }
 `,
+    },
+    {
+      path: 'app/root.tsx',
+      content: `import { Outlet } from '@react-router/dom';
+import './root.css';
+
+export default function Root() {
+  return (
+    <html lang="en">
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>React Router App</title>
+      </head>
+      <body>
+        <Outlet />
+      </body>
+    </html>
+  );
+}
+`,
+    },
+    {
+      path: 'app/root.css',
+      content: `@import "tailwindcss";
+
+${getFrontendGlobalStyles().replace('@import "tailwindcss";\\n\\n', '')}
+${getFrontendAppStyles()}`,
+    },
+    getStackmintLogoFile(),
+    {
+      path: 'tsconfig.json',
+      content: JSON.stringify({
+        compilerOptions: {
+          target: 'ES2020',
+          useDefineForClassFields: true,
+          lib: ['ES2020', 'DOM', 'DOM.Iterable'],
+          module: 'ESNext',
+          skipLibCheck: true,
+          moduleResolution: 'bundler',
+          resolveJsonModule: true,
+          isolatedModules: true,
+          noEmit: true,
+          jsx: 'react-jsx',
+          strict: true,
+          esModuleInterop: true,
+          allowImportingTsExtensions: true,
+        },
+        include: ['app', 'public'],
+        exclude: ['node_modules', 'build', 'dist']
+      }, null, 2),
     },
     {
       path: 'react-router.config.ts',
@@ -2630,6 +2815,7 @@ registerTemplate({
 
 export default {
   ssr: true,
+  // Configure for proper development and production
 } satisfies Config;
 `,
     },
@@ -2648,25 +2834,164 @@ registerTemplate({
     {
       path: 'app/routes/index.tsx',
       content: `import { createFileRoute } from '@tanstack/react-router';
+import { useState } from 'react';
+
+const signals = [
+  { label: 'Runtime', value: 'TanStack Start', detail: 'Full-stack React framework' },
+  { label: 'Styling', value: 'Tailwind v4', detail: 'Utility-first CSS framework' },
+  { label: 'Build', value: 'SSR Ready', detail: 'Server-side rendering included' },
+];
 
 export const Route = createFileRoute('/')({
   component: Home,
 });
 
 function Home() {
+  const [launches, setLaunches] = useState(1);
+
   return (
-    <div className="p-2">
-      <h3>Welcome to TanStack Start!</h3>
+    <div className="stackmint-shell">
+      <header className="topbar">
+        <a className="brand-mark" href="https://stackmint-docs.vercel.app" target="_blank" rel="noreferrer">
+          <span className="brand-glyph">S</span>
+          <span className="brand-name">
+            <strong>stackmint</strong>
+            <span>TypeScript starter</span>
+          </span>
+        </a>
+        <a className="topbar-link" href="https://github.com/senapati484/stackmint" target="_blank" rel="noreferrer">
+          GitHub
+        </a>
+      </header>
+
+      <main className="hero">
+        <section className="hero-copy" aria-labelledby="hero-title">
+          <span className="eyebrow"><span className="pulse" /> Prebuilt frontend template</span>
+          <h1 id="hero-title">
+            Shape your <span className="accent">TanStack Start</span> launch surface.
+          </h1>
+          <p className="hero-lede">
+            A polished stackmint canvas with the real brand artwork, responsive panels,
+            and a consistent layout ready to mirror across every frontend framework.
+          </p>
+
+          <div className="actions">
+            <button className="button button-primary" type="button" onClick={() => setLaunches((value) => value + 1)}>
+              Launch pulse {launches}
+            </button>
+            <a className="button button-secondary" href="https://stackmint-docs.vercel.app" target="_blank" rel="noreferrer">
+              Open docs
+            </a>
+          </div>
+
+          <div className="signal-grid" aria-label="Template highlights">
+            {signals.map((signal) => (
+              <article className="signal-card" key={signal.label}>
+                <span>{signal.label}</span>
+                <strong>{signal.value}</strong>
+                <p>{signal.detail}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="hero-visual" aria-label="stackmint preview">
+          <div className="logo-stage">
+            <img className="logo-image" src="/logo.png" alt="stackmint" />
+          </div>
+          <aside className="framework-card">
+            <span>Framework section</span>
+            <strong>TanStack Start</strong>
+            <p>TanStack Start with React, TypeScript, and Tailwind v4 configured.</p>
+          </aside>
+
+          <div className="status-row">
+            <div className="mini-panel">
+              <span>Edit surface</span>
+              <strong><code>app/routes/index.tsx</code></strong>
+            </div>
+            <div className="mini-panel">
+              <span>Dev server</span>
+              <strong><code>npm run dev</code></strong>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer className="footer-note">
+        Built with stackmint. Keep this layout and swap the framework section as new templates come online.
+      </footer>
     </div>
   );
 }
 `,
     },
     {
+      path: 'app/root.tsx',
+      content: `import { Outlet, createRootRoute } from '@tanstack/react-router';
+import './root.css';
+
+export const Route = createRootRoute({
+  component: () => (
+    <html lang="en">
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>TanStack Start App</title>
+      </head>
+      <body>
+        <Outlet />
+      </body>
+    </html>
+  ),
+});
+`,
+    },
+    {
+      path: 'app/root.css',
+      content: `@import "tailwindcss";
+
+${getFrontendGlobalStyles().replace('@import "tailwindcss";\\n\\n', '')}
+${getFrontendAppStyles()}`,
+    },
+    getStackmintLogoFile(),
+    {
+      path: 'tsconfig.json',
+      content: JSON.stringify({
+        compilerOptions: {
+          target: 'ES2020',
+          useDefineForClassFields: true,
+          lib: ['ES2020', 'DOM', 'DOM.Iterable'],
+          module: 'ESNext',
+          skipLibCheck: true,
+          moduleResolution: 'bundler',
+          resolveJsonModule: true,
+          isolatedModules: true,
+          noEmit: true,
+          jsx: 'react-jsx',
+          strict: true,
+          esModuleInterop: true,
+          allowImportingTsExtensions: true,
+        },
+        include: ['app'],
+        exclude: ['node_modules', '.output', 'dist', 'build']
+      }, null, 2),
+    },
+    {
       path: 'app.config.ts',
       content: `import { defineConfig } from '@tanstack/react-start/config';
 
-export default defineConfig({});
+export default defineConfig({
+  // Configuration for TanStack Start
+  routers: {
+    web: {
+      entry: 'entry.client.tsx',
+    },
+    ssr: {
+      entry: 'entry.server.tsx',
+    },
+  },
+});
 `,
     },
   ],
@@ -2739,96 +3064,136 @@ registerTemplate({
 });
 
 
-// Vue + Vite Template
-registerTemplate({
-  id: 'vue-vite',
-  files: (): AdapterFile[] => [
-    {
-      path: 'package.json',
-      content: JSON.stringify({
-        name: 'stackmint-vue-vite',
-        private: true,
-        version: '0.0.0',
-        type: 'module',
-        scripts: {
-          dev: 'vite',
-          build: 'vue-tsc -b && vite build',
-          preview: 'vite preview'
-        },
-        dependencies: {
-          'vue': '^3.5.13'
-        },
-        devDependencies: {
-          '@vitejs/plugin-vue': '^5.2.1',
-          'typescript': '~5.6.2',
-          'vite': '^6.0.5',
-          'vue-tsc': '^2.2.0'
-        }
-      }, null, 2),
-    },
-    {
-      path: 'vite.config.ts',
-      content: `import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
-
-export default defineConfig({
-  plugins: [vue()],
-})`
-    },
-    {
-      path: 'src/main.ts',
-      content: `import { createApp } from 'vue'
-import App from './App.vue'
-
-createApp(App).mount('#app')`
-    },
-    {
-      path: 'src/App.vue',
-      content: `<template>
-  <div>
-    <h1>Vue + Vite</h1>
-  </div>
-</template>`
-    },
-    {
-      path: 'index.html',
-      content: `<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + Vue + TS</title>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
-</html>`
-    }
-  ],
-  scripts: {
-    dev: 'vite',
-    build: 'vue-tsc -b && vite build',
-    start: 'vite preview',
-  },
-});
 
 // Qwik Template
 registerTemplate({
   id: 'qwik',
   files: (): AdapterFile[] => [
     {
-      path: 'package.json',
-      content: JSON.stringify({
-        name: 'stackmint-qwik',
-        scripts: {
-          dev: 'vite',
-          build: 'qwik build',
-        }
-      }, null, 2),
-    }
+      path: 'src/routes/index.tsx',
+      content: `import { component$, useSignal } from '@builder.io/qwik';
+import { type DocumentHead } from '@builder.io/qwik-city';
+import './styles/app.css';
+
+const signals = [
+  { label: 'Runtime', value: 'Qwik', detail: 'Resumability-first framework' },
+  { label: 'Styling', value: 'Tailwind v4', detail: 'Utility-first CSS framework' },
+  { label: 'Build', value: 'SPA', detail: 'Optimized static output' },
+];
+
+export default component$(() => {
+  const launches = useSignal(1);
+
+  return (
+    <div class="stackmint-shell">
+      <header class="topbar">
+        <a class="brand-mark" href="https://stackmint-docs.vercel.app" target="_blank" rel="noreferrer">
+          <span class="brand-glyph">S</span>
+          <span class="brand-name">
+            <strong>stackmint</strong>
+            <span>TypeScript starter</span>
+          </span>
+        </a>
+        <a class="topbar-link" href="https://github.com/senapati484/stackmint" target="_blank" rel="noreferrer">
+          GitHub
+        </a>
+      </header>
+
+      <main class="hero">
+        <section class="hero-copy" aria-labelledby="hero-title">
+          <span class="eyebrow"><span class="pulse" /> Prebuilt frontend template</span>
+          <h1 id="hero-title">
+            Shape your <span class="accent">Qwik</span> launch surface.
+          </h1>
+          <p class="hero-lede">
+            A polished stackmint canvas with the real brand artwork, responsive panels,
+            and a consistent layout ready to mirror across every frontend framework.
+          </p>
+
+          <div class="actions">
+            <button class="button button-primary" type="button" onClick$={() => launches.value++}>
+              Launch pulse {launches.value}
+            </button>
+            <a class="button button-secondary" href="https://stackmint-docs.vercel.app" target="_blank" rel="noreferrer">
+              Open docs
+            </a>
+          </div>
+
+          <div class="signal-grid" aria-label="Template highlights">
+            {signals.map((signal) => (
+              <article class="signal-card" key={signal.label}>
+                <span>{signal.label}</span>
+                <strong>{signal.value}</strong>
+                <p>{signal.detail}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section class="hero-visual" aria-label="stackmint preview">
+          <div class="logo-stage">
+            <img class="logo-image" src="/logo.png" alt="stackmint" />
+          </div>
+          <aside class="framework-card">
+            <span>Framework section</span>
+            <strong>Qwik</strong>
+            <p>Qwik, TypeScript, and Tailwind v4 are configured and ready.</p>
+          </aside>
+
+          <div class="status-row">
+            <div class="mini-panel">
+              <span>Edit surface</span>
+              <strong><code>src/routes/index.tsx</code></strong>
+            </div>
+            <div class="mini-panel">
+              <span>Dev server</span>
+              <strong><code>npm run dev</code></strong>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer-note">
+        Built with stackmint. Keep this layout and swap the framework section as new templates come online.
+      </footer>
+    </div>
+  );
+});
+
+export const head: DocumentHead = {
+  title: 'Qwik App',
+  meta: [
+    { name: 'description', content: 'Built with stackmint - scaffold any TypeScript stack in seconds' },
   ],
-  scripts: { dev: 'vite', build: 'qwik build' },
+};
+`,
+    },
+    {
+      path: 'src/routes/styles/app.css',
+      content: `${getFrontendGlobalStyles()}
+${getFrontendAppStyles()}`,
+    },
+    {
+      path: 'public/logo.png',
+      content: getStackmintLogoFile().content,
+      encoding: 'base64',
+      overwrite: true,
+    },
+    {
+      path: 'src/routes/layout.tsx',
+      content: `import { component$, Slot } from '@builder.io/qwik';
+
+export default component$(() => {
+  return <Slot />;
+});
+`,
+    },
+  ],
+  scripts: { 
+    dev: 'qwik dev', 
+    build: 'qwik build',
+    preview: 'qwik preview',
+  },
 });
 
 // Angular Template
@@ -2836,79 +3201,288 @@ registerTemplate({
   id: 'angular',
   files: (): AdapterFile[] => [
     {
-      path: 'package.json',
-      content: JSON.stringify({
-        name: 'stackmint-angular',
-        scripts: {
-          start: 'ng serve',
-          build: 'ng build',
-        }
-      }, null, 2),
-    }
+      path: 'src/app/app.component.ts',
+      content: `import { Component, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+interface Signal {
+  label: string;
+  value: string;
+  detail: string;
+}
+
+@Component({
+  selector: 'app-root',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './app.component.html',
+  styleUrl: './app.component.css',
+})
+export class AppComponent {
+  launches = signal(1);
+  signals: Signal[] = [
+    { label: 'Runtime', value: 'Angular 17+', detail: 'Standalone components ready' },
+    { label: 'Styling', value: 'Tailwind v4', detail: 'Utility-first CSS framework' },
+    { label: 'Build', value: 'SPA', detail: 'Optimized Angular output' },
+  ];
+
+  incrementLaunches() {
+    this.launches.set(this.launches() + 1);
+  }
+}
+`,
+    },
+    {
+      path: 'src/app/app.component.html',
+      content: `<div class="stackmint-shell">
+  <header class="topbar">
+    <a class="brand-mark" href="https://stackmint-docs.vercel.app" target="_blank" rel="noreferrer">
+      <span class="brand-glyph">S</span>
+      <span class="brand-name">
+        <strong>stackmint</strong>
+        <span>TypeScript starter</span>
+      </span>
+    </a>
+    <a class="topbar-link" href="https://github.com/senapati484/stackmint" target="_blank" rel="noreferrer">
+      GitHub
+    </a>
+  </header>
+
+  <main class="hero">
+    <section class="hero-copy" aria-labelledby="hero-title">
+      <span class="eyebrow"><span class="pulse"></span> Prebuilt frontend template</span>
+      <h1 id="hero-title">
+        Shape your <span class="accent">Angular</span> launch surface.
+      </h1>
+      <p class="hero-lede">
+        A polished stackmint canvas with the real brand artwork, responsive panels,
+        and a consistent layout ready to mirror across every frontend framework.
+      </p>
+
+      <div class="actions">
+        <button class="button button-primary" type="button" (click)="incrementLaunches()">
+          Launch pulse {{ launches() }}
+        </button>
+        <a class="button button-secondary" href="https://stackmint-docs.vercel.app" target="_blank" rel="noreferrer">
+          Open docs
+        </a>
+      </div>
+
+      <div class="signal-grid" aria-label="Template highlights">
+        <article *ngFor="let signal of signals" class="signal-card">
+          <span>{{ signal.label }}</span>
+          <strong>{{ signal.value }}</strong>
+          <p>{{ signal.detail }}</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="hero-visual" aria-label="stackmint preview">
+      <div class="logo-stage">
+        <img class="logo-image" src="/logo.png" alt="stackmint" />
+      </div>
+      <aside class="framework-card">
+        <span>Framework section</span>
+        <strong>Angular</strong>
+        <p>Angular, TypeScript, and Tailwind v4 are configured and ready.</p>
+      </aside>
+
+      <div class="status-row">
+        <div class="mini-panel">
+          <span>Edit surface</span>
+          <strong><code>src/app/app.component.ts</code></strong>
+        </div>
+        <div class="mini-panel">
+          <span>Dev server</span>
+          <strong><code>npm run dev</code></strong>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer-note">
+    Built with stackmint. Keep this layout and swap the framework section as new templates come online.
+  </footer>
+</div>
+`,
+    },
+    {
+      path: 'src/app/app.component.css',
+      content: `@import "tailwindcss";
+
+${getFrontendGlobalStyles().replace('@import "tailwindcss";\\n\\n', '')}
+${getFrontendAppStyles()}`,
+    },
+    {
+      path: 'src/main.ts',
+      content: `import { bootstrapApplication } from '@angular/platform-browser';
+import { AppComponent } from './app/app.component';
+
+bootstrapApplication(AppComponent);
+`,
+    },
   ],
-  scripts: { dev: 'ng serve', build: 'ng build' },
+  scripts: { 
+    dev: 'ng serve', 
+    build: 'ng build',
+    start: 'ng serve --open',
+  },
 });
 
 // Elysia Template
 registerTemplate({
   id: 'elysia',
-  files: (): AdapterFile[] => [
-    {
-      path: 'package.json',
-      content: JSON.stringify({
-        name: 'stackmint-elysia',
-        scripts: {
-          dev: 'bun run --watch src/index.ts',
-        }
-      }, null, 2),
-    },
-    {
-      path: 'src/index.ts',
-      content: `import { Elysia } from "elysia";
+  files: (): AdapterFile[] => {
+    const landingHTML = getStaticFrontendMarkup({
+      framework: 'Elysia',
+      runtime: 'Elysia + Bun',
+      styling: 'HTML/CSS',
+      build: 'API Server',
+      detail: 'Blazingly fast Bun web framework',
+      editPath: 'src/index.ts',
+      actionHref: '/health',
+      actionLabel: 'Check API Health',
+    });
 
-const app = new Elysia().get("/", () => "Hello Elysia").listen(3000);
+    return [
+      {
+        path: 'src/index.ts',
+        content: `import { Elysia } from "elysia";
+import { staticPlugin } from "@elysiajs/static";
 
-console.log(
-  \`🦊 Elysia is running at \${app.server?.hostname}:\${app.server?.port}\`
-);`
-    }
-  ],
-  scripts: { dev: 'bun run --watch src/index.ts', start: 'bun src/index.ts' },
+const app = new Elysia()
+  .use(staticPlugin({
+    assets: 'public'
+  }))
+  .get("/", () => '${landingHTML.replace(/'/g, "\\'")}')
+  .get("/health", () => ({ 
+    status: "ok", 
+    framework: "elysia",
+    timestamp: new Date().toISOString()
+  }))
+  .listen(3000);
+
+console.log(\`🦊 Elysia is running at http://\${app.server?.hostname}:\${app.server?.port}\`);
+`,
+      },
+      {
+        path: 'public/.gitkeep',
+        content: '',
+      },
+      getStackmintLogoFile(),
+      {
+        path: 'tsconfig.json',
+        content: JSON.stringify({
+          compilerOptions: {
+            target: 'ES2022',
+            module: 'ESNext',
+            moduleResolution: 'bundler',
+            strict: true,
+            skipLibCheck: true,
+            outDir: 'dist',
+          },
+          include: ['src/**/*'],
+        }, null, 2),
+      },
+    ];
+  },
+  scripts: { 
+    dev: 'bun run --watch src/index.ts', 
+    start: 'bun src/index.ts',
+    build: 'bun build src/index.ts --outdir dist'
+  },
 });
 
 // Fastify Template
 registerTemplate({
   id: 'fastify',
-  files: (): AdapterFile[] => [
-    {
-      path: 'package.json',
-      content: JSON.stringify({
-        name: 'stackmint-fastify',
-        scripts: {
-          dev: 'tsx watch src/index.ts',
-        }
-      }, null, 2),
-    },
-    {
-      path: 'src/index.ts',
-      content: `import Fastify from 'fastify'
+  files: (): AdapterFile[] => {
+    const landingHTML = getStaticFrontendMarkup({
+      framework: 'Fastify',
+      runtime: 'Fastify',
+      styling: 'HTML/CSS',
+      build: 'API Server',
+      detail: 'Fast, low-overhead web framework',
+      editPath: 'src/index.ts',
+      actionHref: '/api/health',
+      actionLabel: 'Check API Health',
+    });
+
+    return [
+      {
+        path: 'src/index.ts',
+        content: `import Fastify from 'fastify';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import fastifyStatic from '@fastify/static';
+
 const fastify = Fastify({
   logger: true
-})
+});
 
-fastify.get('/', async function handler (request, reply) {
-  return { hello: 'world' }
-})
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-try {
-  await fastify.listen({ port: 3000 })
-} catch (err) {
-  fastify.log.error(err)
-  process.exit(1)
-}`
-    }
-  ],
-  scripts: { dev: 'tsx watch src/index.ts', start: 'node dist/index.js' },
+await fastify.register(fastifyStatic, {
+  root: path.join(__dirname, '../public'),
+  prefix: '/',
+});
+
+fastify.get('/', async function(request, reply) {
+  reply.type('text/html');
+  return '${landingHTML.replace(/'/g, "\\'")}';
+});
+
+fastify.get('/api/health', async function(request, reply) {
+  return { 
+    status: 'ok', 
+    framework: 'fastify',
+    timestamp: new Date().toISOString()
+  };
+});
+
+const start = async () => {
+  try {
+    await fastify.listen({ port: 3000 });
+  } catch (err) {
+    fastify.log.error(err);
+    process.exit(1);
+  }
+};
+
+start();
+`,
+      },
+      {
+        path: 'tsconfig.json',
+        content: JSON.stringify({
+          compilerOptions: {
+            target: 'ES2022',
+            module: 'ES2022',
+            moduleResolution: 'bundler',
+            strict: true,
+            esModuleInterop: true,
+            skipLibCheck: true,
+            forceConsistentCasingInFileNames: true,
+            resolveJsonModule: true,
+            outDir: 'dist',
+            rootDir: 'src',
+          },
+          include: ['src/**/*'],
+          exclude: ['node_modules', 'dist']
+        }, null, 2),
+      },
+      {
+        path: 'public/.gitkeep',
+        content: '',
+      },
+      getStackmintLogoFile(),
+    ];
+  },
+  scripts: { 
+    dev: 'tsx watch src/index.ts', 
+    build: 'tsup src/index.ts --format esm --outDir dist',
+    start: 'node dist/index.js' 
+  },
 });
 
 // NestJS Template
