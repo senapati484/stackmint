@@ -1,4 +1,13 @@
 import { Adapter, AdapterFile, AdapterDependency, ADAPTER_REGISTRY } from './index.js';
+import { generateShadcnComponents } from './ui-library.js';
+import { generateUtilsHelpers } from './utils-helpers.js';
+import { generateProviderComponents } from './providers.js';
+import { generateExampleComponents } from './examples.js';
+import { generateSvelteKitComponents } from './sveltekit.js';
+import { generateVueComponents } from './vue-framework.js';
+import { generateReactViteComponents } from './react-vite.js';
+import { generateSolidComponents } from './solid.js';
+import { generateAstroComponents } from './astro.js';
 
 interface StackConfig {
   framework?: string;
@@ -89,7 +98,7 @@ export function registerShadcnAdapter(): void {
               ? 'src/styles/global.css'
               : 'src/styles/globals.css';
 
-      return [
+      const files: AdapterFile[] = [
         {
           path: 'components.json',
           content: JSON.stringify({
@@ -109,13 +118,54 @@ export function registerShadcnAdapter(): void {
             },
           }, null, 2),
         },
-        {
-          path: 'src/components/ui/.gitkeep',
-          content: '',
-        },
       ];
+
+      // Add framework-specific UI components
+      if (framework.startsWith('next')) {
+        files.push(...generateShadcnComponents({ framework }));
+      } else if (framework === 'svelte-vite' || framework === 'sveltekit') {
+        files.push(...generateSvelteKitComponents({ framework }));
+      } else if (framework === 'vue-vite' || framework === 'nuxt') {
+        files.push(...generateVueComponents({ framework }));
+      } else if (framework === 'react-vite') {
+        files.push(...generateReactViteComponents({ framework }));
+      } else if (framework === 'solid-vite') {
+        files.push(...generateSolidComponents({ framework }));
+      } else if (framework.startsWith('astro')) {
+        files.push(...generateAstroComponents({ framework }));
+      } else {
+        // Default to React/Next.js components for other frameworks
+        files.push(...generateShadcnComponents({ framework }));
+      }
+
+      // Add utility helpers (all frameworks)
+      files.push(...generateUtilsHelpers({ framework }));
+
+      // Add provider components (Next.js only)
+      if (framework.startsWith('next')) {
+        files.push(...generateProviderComponents({
+          framework,
+          auth: config.auth,
+          apiLayer: config.apiLayer,
+          stateManagement: config.stateManagement,
+        }));
+
+        // Add example components
+        files.push(...generateExampleComponents({
+          framework,
+          apiLayer: config.apiLayer,
+          auth: config.auth,
+        }));
+      }
+
+      return files;
     },
-    dependencies: () => [],
+    dependencies: () => [
+      { name: 'clsx', version: '^2.0.0' },
+      { name: 'tailwind-merge', version: '^2.0.0' },
+      { name: 'class-variance-authority', version: '^0.7.0' },
+      { name: '@radix-ui/react-slot', version: '^2.0.0' },
+    ],
   };
 
   ADAPTER_REGISTRY.set('shadcn', adapter);
