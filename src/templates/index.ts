@@ -3,6 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { AdapterFile, AdapterDependency } from '../adapters/index.js';
 import { StackConfig } from '../cli/types.js';
+import { STACKMINT_LOGO_BASE64 } from '../generated/logo-base64.js';
 
 export interface FrameworkTemplate {
   id: string;
@@ -13,14 +14,13 @@ export interface FrameworkTemplate {
 
 export const TEMPLATE_REGISTRY = new Map<string, FrameworkTemplate>();
 
-const templateDir = path.dirname(fileURLToPath(import.meta.url));
-const stackmintLogoPath = path.resolve(templateDir, '../../public/img/logo.png');
 
 function getStackmintLogoFile(): AdapterFile {
   return {
     path: 'public/logo.png',
-    content: fs.readFileSync(path.resolve(templateDir, '../../public/bgremove/logo.png')).toString('base64'),
+    content: STACKMINT_LOGO_BASE64,
     encoding: 'base64',
+    overwrite: true,
   };
 }
 

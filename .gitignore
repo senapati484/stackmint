@@ -16,3 +16,5 @@ test-react/
 test-t3-stack/
 # scratch / dev files
 test-input.txt
+# auto-generated at build time — do not commit
+src/generated/

@@ -8,11 +8,12 @@
   },
   "files": [
     "dist",
-    "public/img/logo.png"
+    "public/bgremove/logo.png",
+    "scripts/embed-logo.cjs"
   ],
   "scripts": {
     "dev": "bun run bin/stackmint.ts",
-    "build": "tsup bin/stackmint.ts --format esm --out-dir dist/bin --no-dts && node -e \"const fs=require('fs');let f=fs.readFileSync('dist/bin/stackmint.js','utf8');fs.writeFileSync('dist/bin/stackmint.js',f.replace('#!/usr/bin/env node','#!/usr/bin/env -S node --no-warnings'))\"",
+    "build": "node scripts/embed-logo.cjs && tsup bin/stackmint.ts --format esm --out-dir dist/bin --no-dts && node -e \"const fs=require('fs');let f=fs.readFileSync('dist/bin/stackmint.js','utf8');fs.writeFileSync('dist/bin/stackmint.js',f.replace('#!/usr/bin/env node','#!/usr/bin/env -S node --no-warnings'))\"",
     "test": "vitest run",
     "test:smoke": "vitest run tests/smoke",
     "lint": "echo 'No lint configured'",
