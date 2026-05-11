@@ -60,30 +60,46 @@ export { handler as GET, handler as POST };
           },
           {
             path: 'src/utils/trpc.ts',
-            content: `import { httpBatchLink } from '@trpc/client';
-import { createTRPCNext } from '@trpc/next';
-import type { AppRouter } from '../server/routers/_app';
+            content: `import { createTRPCReact } from '@trpc/react-query';
+import type { AppRouter } from '@/server/routers/_app';
 
-function getBaseUrl() {
+export const trpc = createTRPCReact<AppRouter>();
+
+export function getBaseUrl() {
   if (typeof window !== 'undefined') return '';
   if (process.env.VERCEL_URL) return \`https://\${process.env.VERCEL_URL}\`;
   return \`http://localhost:\${process.env.PORT ?? 3000}\`;
 }
+`,
+          },
+          {
+            path: 'src/components/providers/trpc-provider.tsx',
+            content: `'use client';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { httpBatchLink } from '@trpc/client';
+import { useState } from 'react';
+import { trpc, getBaseUrl } from '@/utils/trpc';
 
-export const trpc = createTRPCNext<AppRouter>({
-  config() {
-    return {
+export function TRPCProvider({ children }: { children: React.ReactNode }) {
+  const [queryClient] = useState(() => new QueryClient());
+  const [trpcClient] = useState(() =>
+    trpc.createClient({
       links: [
         httpBatchLink({
           url: \`\${getBaseUrl()}/api/trpc\`,
         }),
       ],
-    };
-  },
-  ssr: false,
-});
-`
-          }
+    }),
+  );
+
+  return (
+    <trpc.Provider client={trpcClient} queryClient={queryClient}>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    </trpc.Provider>
+  );
+}
+`,
+          },
         ];
       }
       return [];
