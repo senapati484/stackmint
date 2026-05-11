@@ -14,6 +14,7 @@ export async function writeProject(
   deps: AdapterDependency[],
   envVars: AdapterEnvVar[],
   scripts: Record<string, string>,
+  postInstallCommands: string[] = [],
   options: { skipInstall?: boolean; dryRun?: boolean } = {}
 ): Promise<void> {
   const projectDir = path.resolve(process.cwd(), config.projectDir || config.projectName || 'output');
@@ -91,9 +92,9 @@ coverage
       const installCmd = pm === 'pnpm' ? ['pnpm', 'install'] :
                          pm === 'yarn' ? ['yarn'] :
                          pm === 'bun' ? ['bun', 'install'] :
-                         ['npm', 'install'];
+                         ['npm', 'install', '--legacy-peer-deps'];
 
-      await execa(installCmd[0], installCmd.slice(1), {
+      const result = await execa(installCmd[0], installCmd.slice(1), {
         cwd: projectDir,
         stdio: 'pipe',
       });
@@ -121,9 +122,54 @@ coverage
       if (validation.valid) {
         log.success('Project validation passed!');
       }
+
+      // Run post-install commands after successful installation
+      if (postInstallCommands.length > 0) {
+        log.step('Running post-install commands...');
+        for (const cmd of postInstallCommands) {
+          try {
+            log.info(`Running: ${cmd}`);
+            await execa(cmd, [], {
+              cwd: projectDir,
+              stdio: 'inherit',
+              shell: true,
+            });
+          } catch (cmdErr) {
+            log.warn(`Post-install command failed: ${cmd}`);
+            if (cmdErr instanceof Error) {
+              log.warn(cmdErr.message);
+            }
+          }
+        }
+      }
     } catch (err) {
       spinner.fail('Installation failed');
-      log.error('Run manually: cd ' + config.projectName + ' && npm install');
+      
+      // Provide detailed error information
+      if (err instanceof Error) {
+        log.error('Error details:', err.message);
+        if ('stderr' in err && err.stderr) {
+          log.error('Output:', String(err.stderr));
+        }
+        if ('stdout' in err && err.stdout) {
+          log.error('Output:', String(err.stdout));
+        }
+      }
+      
+      log.warn('Retrying installation with npm...');
+      try {
+        const spinner2 = ora('Retrying with npm install...').start();
+        await execa('npm', ['install', '--legacy-peer-deps'], {
+          cwd: projectDir,
+          stdio: 'inherit',
+        });
+        spinner2.succeed('Dependencies installed with npm!');
+      } catch (retryErr) {
+        log.error('Retry failed. Run manually:');
+        log.error(`  cd ${config.projectName}`);
+        log.error(`  npm install`);
+        throw new Error('Dependency installation failed');
+      }
     }
   } else {
     log.info('Skipped dependency installation (--no-install)');

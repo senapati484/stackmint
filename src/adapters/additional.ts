@@ -160,12 +160,21 @@ export function registerShadcnAdapter(): void {
 
       return files;
     },
-    dependencies: () => [
-      { name: 'clsx', version: '^2.0.0' },
-      { name: 'tailwind-merge', version: '^2.0.0' },
-      { name: 'class-variance-authority', version: '^0.7.0' },
-      { name: '@radix-ui/react-slot', version: '^2.0.0' },
-    ],
+    dependencies: (config: StackConfig) => {
+      const deps: AdapterDependency[] = [
+        { name: 'clsx', version: '^2.0.0' },
+        { name: 'tailwind-merge', version: '^2.0.0' },
+        { name: 'class-variance-authority', version: '^0.7.0' },
+      ];
+      
+      // Only add React-specific dependencies for React frameworks
+      const framework = config.framework || '';
+      if (framework.includes('react') || framework.includes('next')) {
+        deps.push({ name: '@radix-ui/react-slot', version: '^1.2.0' });
+      }
+      
+      return deps;
+    },
   };
 
   ADAPTER_REGISTRY.set('shadcn', adapter);

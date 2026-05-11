@@ -148,8 +148,6 @@ export function TRPCProvider({ children }: TRPCProviderProps) {
         content: `'use client';
 
 import { ReactNode } from 'react';
-import { useEffect, useState } from 'react';
-import { authClient } from '@/lib/auth-client';
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -157,30 +155,10 @@ interface AuthProviderProps {
 
 /**
  * Authentication provider
- * - Initializes auth client
- * - Provides auth context to child components
- * - Handles session persistence
+ * - Wraps app with authentication context
+ * - Session state is managed through useSession() hook
  */
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [isInitialized, setIsInitialized] = useState(false);
-
-  useEffect(() => {
-    // Initialize auth on mount
-    authClient.onSessionChange = () => {
-      // Session changed, component tree will re-render
-    };
-    setIsInitialized(true);
-
-    return () => {
-      authClient.onSessionChange = undefined;
-    };
-  }, []);
-
-  // Optionally show loading state while auth initializes
-  if (!isInitialized) {
-    return <>{children}</>;
-  }
-
   return <>{children}</>;
 }
 `,
@@ -217,46 +195,12 @@ export function useAuth() {
     };
 
     getSession();
-
-    // Subscribe to session changes
-    const unsubscribe = authClient.onSessionChange((session) => {
-      setSession(session);
-    });
-
-    return () => {
-      unsubscribe?.();
-    };
   }, []);
 
   return {
     session,
     loading,
     isAuthenticated: !!session,
-  };
-}
-
-/**
- * Hook to sign in user
- */
-export async function useSignIn() {
-  return {
-    signIn: async (email: string, password: string) => {
-      return authClient.signIn.email({
-        email,
-        password,
-      });
-    },
-  };
-}
-
-/**
- * Hook to sign out user
- */
-export async function useSignOut() {
-  return {
-    signOut: async () => {
-      return authClient.signOut();
-    },
   };
 }
 `,

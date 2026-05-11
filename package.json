@@ -16,6 +16,8 @@
     "build": "node scripts/embed-logo.cjs && tsup bin/stackmint.ts --format esm --out-dir dist/bin --no-dts && node -e \"const fs=require('fs');let f=fs.readFileSync('dist/bin/stackmint.js','utf8');fs.writeFileSync('dist/bin/stackmint.js',f.replace('#!/usr/bin/env node','#!/usr/bin/env -S node --no-warnings'))\"",
     "test": "vitest run",
     "test:smoke": "vitest run tests/smoke",
+    "test:frameworks": "bun test-frameworks.ts",
+    "test:integration": "bun test-integration.ts",
     "lint": "echo 'No lint configured'",
     "typecheck": "tsc --noEmit",
     "postinstall": "node scripts/patch-tsx-warnings.js"

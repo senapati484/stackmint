@@ -145,13 +145,9 @@ export async function generate(
     dedupedDeps,
     allEnvVars,
     allScripts,
+    postInstallCommands,
     options
   );
-
-  log.step('Running post-install commands...');
-  for (const cmd of postInstallCommands) {
-    log.info(`Running: ${cmd}`);
-  }
 
   log.success('Project generated successfully!');
 }
