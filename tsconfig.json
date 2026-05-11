@@ -8,7 +8,7 @@
     "skipLibCheck": true,
     "outDir": "dist",
     "declaration": true,
-    "resolveJsonModule": true,
+    "resolveJsonModule": false,
     "isolatedModules": true
   },
   "include": ["src/**/*", "bin/**/*", "scripts/**/*"],

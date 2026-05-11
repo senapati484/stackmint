@@ -1,5 +1,23 @@
 #!/usr/bin/env node
 
+import { createRequire } from 'module';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+if (!process.env.__STACKMINT_WARNINGS_PATCHED) {
+  process.env.__STACKMINT_WARNINGS_PATCHED = '1';
+  const { emit } = process;
+  process.emit = function (type: string, warning: unknown, ...args: unknown[]) {
+    if (type === 'warning' && typeof warning === 'object' && (warning as any)?.message?.includes('Importing JSON modules')) {
+      return false;
+    }
+    return emit.call(this, type, warning, ...args);
+  };
+}
+
 import { Command } from 'commander';
 import { askIdentity, askFramework, askAddons } from '../src/cli/questions.js';
 import { generate } from '../src/core/generator.js';
