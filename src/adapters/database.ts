@@ -63,8 +63,8 @@ export function registerDrizzleAdapter(): void {
     },
     dependencies: (config: StackConfig): AdapterDependency[] => {
       const deps: AdapterDependency[] = [
-        { name: 'drizzle-orm', version: '^0.40.0' },
-        { name: 'drizzle-kit', version: '^0.30.0', dev: true },
+        { name: 'drizzle-orm', version: '^0.45.2' },
+        { name: 'drizzle-kit', version: '^0.31.10', dev: true },
       ];
       if (config.database === 'postgres') {
         deps.push({ name: 'pg', version: '^8.11.0' }, { name: '@types/pg', version: '^8.11.0', dev: true });

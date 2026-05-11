@@ -10,3 +10,9 @@ coverage
 plan.md
 testing-t3-stack
 *.tgz
+# generated test scaffolds
+my-test-app/
+test-react/
+test-t3-stack/
+# scratch / dev files
+test-input.txt

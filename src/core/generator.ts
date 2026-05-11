@@ -3,7 +3,7 @@ import { ADAPTER_REGISTRY, getAdapter, AdapterFile, AdapterDependency, AdapterEn
 import { resolveConflicts } from './resolver.js';
 import { log } from '../utils/logger.js';
 import { writeProject } from './writer.js';
-import { getFrameworkTemplate, getTemplateScripts } from '../templates/index.js';
+import { getFrameworkTemplate, getTemplateScripts, getTemplateDependencies } from '../templates/index.js';
 
 export interface GenerateOptions {
   skipInstall?: boolean;
@@ -104,6 +104,9 @@ export async function generate(
 
   const frameworkScripts = getTemplateScripts(frameworkId, resolved as StackConfig);
   Object.assign(allScripts, frameworkScripts);
+
+  const frameworkDeps = getTemplateDependencies(frameworkId, resolved as StackConfig);
+  allDeps.push(...frameworkDeps);
 
   for (const adapterId of adapterIds) {
     const adapter = getAdapter(adapterId);

@@ -39,7 +39,11 @@ export async function writeProject(
       continue;
     }
 
-    fs.writeFileSync(fullPath, file.content, 'utf8');
+    if (file.encoding === 'base64') {
+      fs.writeFileSync(fullPath, Buffer.from(file.content, 'base64'));
+    } else {
+      fs.writeFileSync(fullPath, file.content, 'utf8');
+    }
     log.step(`Created: ${file.path}`);
   }
 

@@ -44,40 +44,29 @@ export function registerTailwindAdapter(): void {
       const files: AdapterFile[] = [];
 
       const framework = config.framework || '';
-      if (framework.startsWith('next') || framework === 'sveltekit' || framework === 'nuxt') {
-        files.push({
-          path: 'src/app/globals.css',
-          content: `@tailwind base;
-@tailwind components;
-@tailwind utilities;
+      const cssPath = framework.startsWith('next')
+        ? 'src/app/globals.css'
+        : framework === 'sveltekit'
+          ? 'src/app.css'
+          : framework === 'nuxt'
+            ? 'assets/css/main.css'
+            : framework.startsWith('astro')
+              ? 'src/styles/global.css'
+              : 'src/styles/globals.css';
 
-:root {
-  --background: #ffffff;
-  --foreground: #000000;
-}
-
-@layer base {
-  body {
-    @apply bg-background text-foreground;
-  }
-}
+      files.push({
+        path: cssPath,
+        content: `@import "tailwindcss";
 `,
-        });
-      } else {
-        files.push({
-          path: 'src/styles/globals.css',
-          content: `@tailwind base;
-@tailwind components;
-@tailwind utilities;
-`,
-        });
-      }
+      });
 
       return files;
     },
     dependencies: (): AdapterDependency[] => [
-      { name: 'tailwindcss', version: '^4.0.0' },
+      { name: 'tailwindcss', version: '^4.0.0', dev: true },
       { name: '@tailwindcss/vite', version: '^4.0.0', dev: true },
+      { name: '@tailwindcss/postcss', version: '^4.0.0', dev: true },
+      { name: 'postcss', version: '^8.4.0', dev: true },
     ],
   };
 
@@ -88,33 +77,45 @@ export function registerShadcnAdapter(): void {
   const adapter: Adapter = {
     id: 'shadcn',
     name: 'shadcn/ui',
-    files: (): AdapterFile[] => [
-      {
-        path: 'components.json',
-        content: JSON.stringify({
-          $schema: 'https://ui.shadcn.com/schema.json',
-          style: 'default',
-          rsc: true,
-          tsx: true,
-          tailwind: {
-            config: '',
-            css: 'src/app/globals.css',
-            baseColor: 'zinc',
-            cssVariables: true,
-          },
-          aliases: {
-            components: '@/components',
-            utils: '@/lib/utils',
-          },
-        }, null, 2),
-      },
-      {
-        path: 'src/components/ui/.gitkeep',
-        content: '',
-      },
-    ],
+    files: (config: StackConfig): AdapterFile[] => {
+      const framework = config.framework || '';
+      const cssPath = framework.startsWith('next')
+        ? 'src/app/globals.css'
+        : framework === 'sveltekit'
+          ? 'src/app.css'
+          : framework === 'nuxt'
+            ? 'assets/css/main.css'
+            : framework.startsWith('astro')
+              ? 'src/styles/global.css'
+              : 'src/styles/globals.css';
+
+      return [
+        {
+          path: 'components.json',
+          content: JSON.stringify({
+            $schema: 'https://ui.shadcn.com/schema.json',
+            style: 'default',
+            rsc: true,
+            tsx: true,
+            tailwind: {
+              config: '',
+              css: cssPath,
+              baseColor: 'zinc',
+              cssVariables: true,
+            },
+            aliases: {
+              components: '@/components',
+              utils: '@/lib/utils',
+            },
+          }, null, 2),
+        },
+        {
+          path: 'src/components/ui/.gitkeep',
+          content: '',
+        },
+      ];
+    },
     dependencies: () => [],
-    postInstall: ['npx shadcn@latest init --yes --defaults'],
   };
 
   ADAPTER_REGISTRY.set('shadcn', adapter);
@@ -324,7 +325,7 @@ export function registerStripeAdapter(): void {
           content: `import Stripe from 'stripe';
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-12-18.acacia',
+  apiVersion: '2025-02-24.acacia',
   typescript: true,
 });
 `,
@@ -350,7 +351,8 @@ import Stripe from 'stripe';
 
 export async function POST(req: Request) {
   const body = await req.text();
-  const signature = headers().get('Stripe-Signature') as string;
+  const headersList = await headers();
+  const signature = headersList.get('Stripe-Signature') as string;
 
   let event: Stripe.Event;
 
@@ -382,7 +384,7 @@ export async function POST(req: Request) {
       return files;
     },
     dependencies: (): AdapterDependency[] => [
-      { name: 'stripe', version: '^14.0.0' },
+      { name: 'stripe', version: '^17.5.0' },
       { name: '@stripe/stripe-js', version: '^2.0.0' },
     ],
     envVars: () => [
@@ -441,10 +443,29 @@ export function registerVitestAdapter(): void {
   const adapter: Adapter = {
     id: 'vitest',
     name: 'Vitest',
-    files: (): AdapterFile[] => [
-      {
-        path: 'vitest.config.ts',
-        content: `import { defineConfig } from 'vitest/config';
+    files: (config: StackConfig): AdapterFile[] => {
+      const isReact = config.framework?.includes('react') || config.framework === 'nextjs' || config.framework?.includes('tanstack');
+      const isVue = config.framework?.includes('vue') || config.framework === 'nuxt';
+      const isSvelte = config.framework?.includes('svelte');
+
+      let cleanupImport = '';
+      let cleanupCall = '';
+
+      if (isReact) {
+        cleanupImport = "import { cleanup } from '@testing-library/react';\n";
+        cleanupCall = "  cleanup();\n";
+      } else if (isVue) {
+        cleanupImport = "import { cleanup } from '@testing-library/vue';\n";
+        cleanupCall = "  cleanup();\n";
+      } else if (isSvelte) {
+        cleanupImport = "import { cleanup } from '@testing-library/svelte';\n";
+        cleanupCall = "  cleanup();\n";
+      }
+
+      return [
+        {
+          path: 'vitest.config.ts',
+          content: `import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
@@ -458,27 +479,47 @@ export default defineConfig({
   },
 });
 `,
-      },
-      {
-        path: 'tests/setup.ts',
-        content: `import { beforeEach, afterEach } from 'vitest';
-import { cleanup } from '@testing-library/react';
-
+        },
+        {
+          path: 'tests/setup.ts',
+          content: `import { beforeEach, afterEach } from 'vitest';
+${cleanupImport}
 beforeEach(() => {
   // Setup
 });
 
 afterEach(() => {
-  cleanup();
-});
+${cleanupCall}});
 `,
-      },
-    ],
-    dependencies: () => [
-      { name: 'vitest', version: '^1.6.0', dev: true },
-      { name: '@vitest/coverage-v8', version: '^1.6.0', dev: true },
-      { name: 'happy-dom', version: '^12.0.0', dev: true },
-    ],
+        },
+      ];
+    },
+    dependencies: (config: StackConfig): AdapterDependency[] => {
+      const deps: AdapterDependency[] = [
+        { name: 'vitest', version: '^4.1.5', dev: true },
+        { name: '@vitest/coverage-v8', version: '^4.1.5', dev: true },
+      ];
+      
+      const isFrontend = !['hono', 'elysia', 'fastify', 'nestjs', 'express', 'nitro', 'h3', 'bun-native'].includes(config.framework || '');
+      
+      if (isFrontend) {
+        deps.push({ name: 'happy-dom', version: '^12.0.0', dev: true });
+        
+        const isReact = config.framework?.includes('react') || config.framework === 'nextjs' || config.framework?.includes('tanstack');
+        const isVue = config.framework?.includes('vue') || config.framework === 'nuxt';
+        const isSvelte = config.framework?.includes('svelte');
+        
+        if (isReact) {
+          deps.push({ name: '@testing-library/react', version: '^16.0.0', dev: true });
+        } else if (isVue) {
+          deps.push({ name: '@testing-library/vue', version: '^8.0.0', dev: true });
+        } else if (isSvelte) {
+          deps.push({ name: '@testing-library/svelte', version: '^4.0.0', dev: true });
+        }
+      }
+      
+      return deps;
+    },
   };
 
   ADAPTER_REGISTRY.set('vitest', adapter);
@@ -543,6 +584,52 @@ test('health check endpoint', async ({ request }) => {
   ADAPTER_REGISTRY.set('playwright', adapter);
 }
 
+function registerReactHookFormAdapter(): void {
+  const adapter: Adapter = {
+    id: 'react-hook-form',
+    name: 'React Hook Form',
+    files: (): AdapterFile[] => [
+      {
+        path: 'src/lib/forms.ts',
+        content: `// React Hook Form helpers
+export { useForm, useFormContext, FormProvider } from 'react-hook-form';
+export type { FieldValues, SubmitHandler, UseFormReturn } from 'react-hook-form';
+`,
+      },
+    ],
+    dependencies: (): AdapterDependency[] => [
+      { name: 'react-hook-form', version: '^7.51.3', dev: false },
+      { name: '@hookform/resolvers', version: '^3.3.4', dev: false },
+    ],
+  };
+  ADAPTER_REGISTRY.set('react-hook-form', adapter);
+}
+
+function registerTanStackFormAdapter(): void {
+  const adapter: Adapter = {
+    id: 'tanstack-form',
+    name: 'TanStack Form',
+    files: (): AdapterFile[] => [],
+    dependencies: (): AdapterDependency[] => [
+      { name: '@tanstack/react-form', version: '^0.22.0', dev: false },
+    ],
+  };
+  ADAPTER_REGISTRY.set('tanstack-form', adapter);
+}
+
+function registerConformAdapter(): void {
+  const adapter: Adapter = {
+    id: 'conform',
+    name: 'Conform',
+    files: (): AdapterFile[] => [],
+    dependencies: (): AdapterDependency[] => [
+      { name: '@conform-to/react', version: '^1.1.0', dev: false },
+      { name: '@conform-to/zod', version: '^1.1.0', dev: false },
+    ],
+  };
+  ADAPTER_REGISTRY.set('conform', adapter);
+}
+
 export function initAdditionalAdapters(): void {
   registerTailwindAdapter();
   registerShadcnAdapter();
@@ -554,4 +641,7 @@ export function initAdditionalAdapters(): void {
   registerUpstashAdapter();
   registerVitestAdapter();
   registerPlaywrightAdapter();
+  registerReactHookFormAdapter();
+  registerTanStackFormAdapter();
+  registerConformAdapter();
 }

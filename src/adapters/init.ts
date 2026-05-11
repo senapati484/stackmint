@@ -10,6 +10,7 @@ import { initAIIDEAdapters } from '../adapters/ai-ide.js';
 import { initDevOpsAdapters } from '../adapters/devops.js';
 import { initAdditionalAdapters } from '../adapters/additional.js';
 import { initFrameworkAdapters } from '../adapters/frameworks.js';
+import { initApiAdapters } from '../adapters/api.js';
 
 export function initAllAdapters(): void {
   try {
@@ -17,6 +18,7 @@ export function initAllAdapters(): void {
     initDatabaseAdapters();
     initBaaSAdapters();
     initAuthAdapters();
+    initApiAdapters();
     initValidationAdapters();
     initDeployAdapters();
     initAIAdapters();

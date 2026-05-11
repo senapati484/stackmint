@@ -100,7 +100,7 @@ program
         config.projectDir = options.output;
       }
 
-      await generate(config as any, { skipInstall: options.noInstall });
+      await generate(config as any, { skipInstall: options.install === false });
 
     } catch (err: unknown) {
       if (err instanceof Error) {
