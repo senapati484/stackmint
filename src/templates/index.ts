@@ -1,6 +1,3 @@
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import { AdapterFile, AdapterDependency } from '../adapters/index.js';
 import { StackConfig } from '../cli/types.js';
 import { STACKMINT_LOGO_BASE64 } from '../generated/logo-base64.js';
@@ -1105,6 +1102,8 @@ export function getFrameworkDescription(config: StackMintConfig): string {
         content: `import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+  // Silences the workspace-root warning when multiple lockfiles are detected
+  outputFileTracingRoot: process.cwd(),
   ${config.deployTarget === 'cloudflare-workers' ? "output: 'export'," : ''}
 };
 
