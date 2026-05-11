@@ -3161,7 +3161,7 @@ export default function Index() {
     },
     {
       path: 'app/root.tsx',
-      content: `import { Outlet } from '@react-router/dom';
+      content: `import { Outlet, Meta, Links, Scripts, ScrollRestoration } from 'react-router';
 import './root.css';
 
 export default function Root() {
@@ -3171,9 +3171,13 @@ export default function Root() {
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>React Router App</title>
+        <Meta />
+        <Links />
       </head>
       <body>
         <Outlet />
+        <ScrollRestoration />
+        <Scripts />
       </body>
     </html>
   );
@@ -3211,6 +3215,15 @@ ${getFrontendAppStyles()}`,
       }, null, 2),
     },
     {
+      path: 'app/routes.ts',
+      content: `import { type RouteConfig, index } from "@react-router/dev/routes";
+
+export default [
+  index("routes/_index.tsx"),
+] satisfies RouteConfig;
+`,
+    },
+    {
       path: 'react-router.config.ts',
       content: `import type { Config } from '@react-router/dev/config';
 
@@ -3218,6 +3231,18 @@ export default {
   ssr: true,
   // Configure for proper development and production
 } satisfies Config;
+`,
+    },
+    {
+      path: 'vite.config.ts',
+      content: `import { reactRouter } from '@react-router/dev/vite';
+import tailwindcss from '@tailwindcss/vite';
+import { defineConfig } from 'vite';
+import tsconfigPaths from 'vite-tsconfig-paths';
+
+export default defineConfig({
+  plugins: [tailwindcss(), reactRouter(), tsconfigPaths()],
+});
 `,
     },
   ],

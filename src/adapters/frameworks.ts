@@ -166,8 +166,13 @@ export function registerReactRouterAdapter(): void {
     dependencies: (): AdapterDependency[] => [
       { name: 'react-router', version: '^7.0.0' },
       { name: '@react-router/node', version: '^7.0.0' },
+      { name: '@react-router/serve', version: '^7.0.0' },
       { name: 'react', version: '^18.2.0' },
       { name: 'react-dom', version: '^18.2.0' },
+      { name: '@react-router/dev', version: '^7.0.0', dev: true },
+      { name: 'vite', version: '^5.4.11', dev: true },
+      { name: 'vite-tsconfig-paths', version: '^5.1.4', dev: true },
+      { name: '@tailwindcss/vite', version: '^4.0.0', dev: true },
       { name: 'typescript', version: '^5.3.0', dev: true },
     ],
     condition: (config: StackConfig) => config.framework === 'react-router-v7',

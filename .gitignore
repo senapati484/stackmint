@@ -11,6 +11,7 @@ plan.md
 testing-t3-stack
 *.tgz
 # generated test scaffolds
+test/
 my-test-app/
 test-react/
 test-t3-stack/
