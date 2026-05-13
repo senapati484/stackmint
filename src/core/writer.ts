@@ -216,13 +216,45 @@ function buildPackageJson(
 
 function getDevScript(config: StackConfig): string {
   const framework = config.framework || '';
+  
+  // Full-stack frameworks
   if (framework.startsWith('next')) return 'next dev --turbopack';
   if (framework === 'sveltekit') return 'vite dev';
   if (framework === 'nuxt') return 'nuxt dev';
+  if (framework === 'analog') return 'vite';
+  if (framework === 'tanstack-start') return 'vinxi dev';
+  if (framework === 'react-router-v7') return 'vinxi dev';
+  if (framework === 'astro-ssr' || framework === 'astro-ssg') return 'astro dev';
+  
+  // SPA frameworks
   if (framework.includes('vite')) return 'vite';
-  if (framework === 'hono' || framework === 'elysia') {
+  if (framework === 'qwik') return 'qwik dev';
+  if (framework === 'angular') return 'ng serve';
+  
+  // Backend frameworks
+  if (framework === 'hono') {
     return config.runtime === 'bun' ? 'bun run --hot src/index.ts' : 'tsx watch src/index.ts';
   }
+  if (framework === 'elysia') {
+    return config.runtime === 'bun' ? 'bun run --hot src/index.ts' : 'tsx watch src/index.ts';
+  }
+  if (framework === 'fastify') return 'tsx watch src/index.ts';
+  if (framework === 'nestjs') return 'nest start --watch';
+  if (framework === 'nitro') return 'nitro dev';
+  if (framework === 'express') return 'tsx watch src/index.ts';
+  if (framework === 'h3') return 'listhen -w ./src/index.ts';
+  if (framework === 'bun-native') return 'bun run --watch src/index.ts';
+  
+  // Content/Docs frameworks  
+  if (framework === 'vitepress') return 'vitepress dev .';
+  if (framework === 'eleventy') return 'eleventy --serve';
+  if (framework === 'docusaurus') return 'docusaurus start';
+  if (framework === 'gatsby') return 'gatsby develop';
+  
+  // Mobile
+  if (framework === 'expo') return 'expo start';
+  if (framework === 'react-native') return 'react-native start';
+  
   return 'node src/index.js'; // Generic safe fallback
 }
 

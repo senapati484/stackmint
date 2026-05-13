@@ -247,6 +247,7 @@ export function registerElysiaFrameworkAdapter(): void {
     files: (): AdapterFile[] => [],
     dependencies: (): AdapterDependency[] => [
       { name: 'elysia', version: '^1.0.0' },
+      { name: '@elysiajs/static', version: '^0.7.0' },
       { name: 'typescript', version: '^5.3.0', dev: true },
       { name: 'bun-types', version: 'latest', dev: true },
     ],
@@ -355,6 +356,7 @@ export function registerAngularFrameworkAdapter(): void {
           { name: 'zone.js', version: '~0.15.0' },
           { name: 'typescript', version: '^5.5.0', dev: true },
           { name: 'vite', version: '^6.0.0', dev: true },
+          { name: '@angular/compiler-cli', version: '^19.0.0', dev: true },
         ];
       }
       return [
