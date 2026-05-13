@@ -147,12 +147,12 @@ coverage
       
       // Provide detailed error information
       if (err instanceof Error) {
-        log.error('Error details:', err.message);
+        log.error(`Error details: ${err.message}`);
         if ('stderr' in err && err.stderr) {
-          log.error('Output:', String(err.stderr));
+          log.error(`Output: ${String(err.stderr)}`);
         }
         if ('stdout' in err && err.stdout) {
-          log.error('Output:', String(err.stdout));
+          log.error(`Output: ${String(err.stdout)}`);
         }
       }
       
