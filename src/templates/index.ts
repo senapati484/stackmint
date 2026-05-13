@@ -1186,7 +1186,7 @@ const app = new Hono();
 app.use('*', cors());
 app.use('*', logger());
 
-app.get('/', (c) => c.html('${landingHTML.replace(/'/g, "\\'")}'));
+app.get('/', (c) => c.html(`${landingHTML.replace(/`/g, '\\`').replace(/\$/g, '\\$')}`));
 app.get('/api/health', (c) => c.json({ 
   status: 'ok',
   framework: 'hono',
@@ -1206,7 +1206,7 @@ const app = new Hono();
 app.use('*', cors());
 app.use('*', logger());
 
-app.get('/', (c) => c.html('${landingHTML.replace(/'/g, "\\'")}'));
+app.get('/', (c) => c.html(`${landingHTML.replace(/`/g, '\\`').replace(/\$/g, '\\$')}`));
 app.get('/api/health', (c) => c.json({ 
   status: 'ok',
   framework: 'hono',
@@ -2945,7 +2945,7 @@ const __dirname = path.dirname(__filename);
 app.use(express.static(path.join(__dirname, '../public')));
 
 app.get('/', (req, res) => {
-  res.send('${landingHTML.replace(/'/g, "\\'")}');
+  res.send(`${landingHTML.replace(/`/g, '\\`').replace(/\$/g, '\\$')}`);
 });
 
 app.get('/api/health', (req, res) => {
@@ -3902,7 +3902,7 @@ await fastify.register(fastifyStatic, {
 
 fastify.get('/', async function(request, reply) {
   reply.type('text/html');
-  return '${landingHTML.replace(/'/g, "\\'")}';
+  return `${landingHTML.replace(/`/g, '\\`').replace(/\$/g, '\\$')}`;
 });
 
 fastify.get('/api/health', async function(request, reply) {
@@ -4091,7 +4091,7 @@ registerTemplate({
 const app = createApp();
 const router = createRouter();
 
-router.get('/', defineEventHandler(() => c.html('${landingHTML.replace(/'/g, "\\'")}' )));
+router.get('/', defineEventHandler(() => c.html(`${landingHTML.replace(/`/g, '\\`').replace(/\$/g, '\\$')}` )));
 
 router.get('/api/health', defineEventHandler(() => ({
   status: 'ok',
