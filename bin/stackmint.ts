@@ -33,7 +33,7 @@ const program = new Command();
 program
   .name('stackmint')
   .description('Scaffold any TypeScript full-stack project in seconds')
-  .version('0.1.2');
+  .version('0.1.3');
 
 program
   .argument('[project-name]', 'Project name')
@@ -50,7 +50,7 @@ program
         process.exit(0);
       }
 
-      log.intro('v0.1.2 — scaffold any TypeScript stack\n');
+      log.intro('v0.1.3 — scaffold any TypeScript stack\n');
 
       let config: Record<string, unknown> = {};
 

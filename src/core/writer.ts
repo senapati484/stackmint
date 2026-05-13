@@ -205,7 +205,7 @@ function buildPackageJson(
 
   return {
     name: config.projectName || 'my-app',
-    version: '0.1.0',
+    version: '0.1.3',
     private: true,
     type: 'module',
     scripts: mergedScripts,
