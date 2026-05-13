@@ -586,6 +586,37 @@ function getStaticFrontendMarkup(options: {
 </div>`;
 }
 
+function getStaticFrontendHTML(options: {
+  framework: string;
+  runtime: string;
+  styling: string;
+  build: string;
+  detail: string;
+  editPath: string;
+  actionHref: string;
+  actionLabel: string;
+}): string {
+  const markup = getStaticFrontendMarkup(options);
+  const globalStyles = getFrontendGlobalStyles();
+  const appStyles = getFrontendAppStyles();
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>stackmint - ${options.framework} Starter</title>
+    <style>
+${globalStyles}
+${appStyles}
+    </style>
+</head>
+<body>
+${markup}
+</body>
+</html>`;
+}
+
 export function getFrameworkTemplate(id: string, config: StackConfig): AdapterFile[] {
   const template = TEMPLATE_REGISTRY.get(id);
   if (!template) {
@@ -1162,7 +1193,7 @@ export default nextConfig;
 registerTemplate({
   id: 'hono',
   files: (config: StackConfig): AdapterFile[] => {
-    const landingHTML = getStaticFrontendMarkup({
+    const landingHTML = getStaticFrontendHTML({
       framework: 'Hono',
       runtime: 'Hono',
       styling: 'HTML/CSS',
@@ -1196,12 +1227,20 @@ app.get('/api/health', (c) => c.json({
   timestamp: new Date().toISOString() 
 }));
 
-Bun.serve({ fetch: app.fetch, port: 3000 });
-console.log('Server running on http://localhost:3000');
+const port = parseInt(process.env.PORT || '3000', 10);
+export default Bun.serve({
+  port,
+  fetch: app.fetch,
+  development: true,
+  onListen: ({ port }) => {
+    console.log(\`\\n✨ Server running at http://localhost:\${port}\\n\`);
+  }
+});
 `
           : `import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
+import { serve } from 'hono/node-server';
 
 const app = new Hono();
 
@@ -1217,7 +1256,9 @@ app.get('/api/health', (c) => c.json({
   timestamp: new Date().toISOString()
 }));
 
-export default app;
+const port = parseInt(process.env.PORT || '3000', 10);
+console.log(\`\\n✨ Server running at http://localhost:\${port}\\n\`);
+serve({ fetch: app.fetch, port });
 `,
       },
       getStackmintLogoFile(),
@@ -1361,7 +1402,27 @@ import { defineConfig } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
-    plugins: [sveltekit(), tailwindcss()]
+  plugins: [
+    sveltekit(), 
+    tailwindcss(),
+    {
+      name: 'stackmint-port-logger',
+      configureServer(server) {
+        server.httpServer?.once('listening', () => {
+          const address = server.httpServer?.address();
+          const port = typeof address === 'object' ? address?.port : null;
+          if (port) {
+            console.log(\`\\n✨ Server running at http://localhost:\${port}\\n\`);
+          }
+        });
+      }
+    }
+  ],
+  server: {
+    port: 3000,
+    strictPort: true,
+    host: true,
+  },
 });
 `,
     },
@@ -1453,8 +1514,25 @@ export default defineNuxtConfig({
     ssr: true,
     css: ['~/assets/css/main.css'],
     modules: [],
+    devServer: {
+        port: 3000
+    },
     vite: {
-        plugins: [tailwindcss()]
+        plugins: [
+            tailwindcss(),
+            {
+                name: 'stackmint-port-logger',
+                configureServer(server) {
+                    server.httpServer?.once('listening', () => {
+                        const address = server.httpServer?.address();
+                        const port = typeof address === 'object' ? address?.port : null;
+                        if (port) {
+                            console.log(\`\\n✨ Server running at http://localhost:\${port}\\n\`);
+                        }
+                    });
+                }
+            }
+        ]
     },
 });
 `,
@@ -1539,8 +1617,25 @@ import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
     output: 'static',
+    server: {
+        port: 3000
+    },
     vite: {
-        plugins: [tailwindcss()]
+        plugins: [
+            tailwindcss(),
+            {
+                name: 'stackmint-port-logger',
+                configureServer(server) {
+                    server.httpServer?.once('listening', () => {
+                        const address = server.httpServer?.address();
+                        const port = typeof address === 'object' ? address?.port : null;
+                        if (port) {
+                            console.log(\`\\n✨ Server running at http://localhost:\${port}\\n\`);
+                        }
+                    });
+                }
+            }
+        ]
     },
 });
 `,
@@ -1624,8 +1719,25 @@ export default defineConfig({
     adapter: node({
         mode: 'standalone'
     }),
+    server: {
+        port: 3000
+    },
     vite: {
-        plugins: [tailwindcss()]
+        plugins: [
+            tailwindcss(),
+            {
+                name: 'stackmint-port-logger',
+                configureServer(server) {
+                    server.httpServer?.once('listening', () => {
+                        const address = server.httpServer?.address();
+                        const port = typeof address === 'object' ? address?.port : null;
+                        if (port) {
+                            console.log(\`\\n✨ Server running at http://localhost:\${port}\\n\`);
+                        }
+                    });
+                }
+            }
+        ]
     },
 });
 `,
@@ -1852,7 +1964,27 @@ import vue from '@vitejs/plugin-vue';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
-  plugins: [vue(), tailwindcss()],
+  plugins: [
+    vue(), 
+    tailwindcss(),
+    {
+      name: 'stackmint-port-logger',
+      configureServer(server) {
+        server.httpServer?.once('listening', () => {
+          const address = server.httpServer?.address();
+          const port = typeof address === 'object' ? address?.port : null;
+          if (port) {
+            console.log(\`\\n✨ Server running at http://localhost:\${port}\\n\`);
+          }
+        });
+      }
+    }
+  ],
+  server: {
+    port: 3000,
+    strictPort: true,
+    host: true,
+  },
 });
 `,
 },
@@ -2153,7 +2285,27 @@ import { svelte } from '@sveltejs/vite-plugin-svelte';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
-  plugins: [svelte(), tailwindcss()],
+  plugins: [
+    svelte(), 
+    tailwindcss(),
+    {
+      name: 'stackmint-port-logger',
+      configureServer(server) {
+        server.httpServer?.once('listening', () => {
+          const address = server.httpServer?.address();
+          const port = typeof address === 'object' ? address?.port : null;
+          if (port) {
+            console.log(\`\\n✨ Server running at http://localhost:\${port}\\n\`);
+          }
+        });
+      }
+    }
+  ],
+  server: {
+    port: 3000,
+    strictPort: true,
+    host: true,
+  },
 });
 `,
     },
@@ -2342,7 +2494,27 @@ import solid from 'vite-plugin-solid';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
-  plugins: [solid(), tailwindcss()],
+  plugins: [
+    solid(), 
+    tailwindcss(),
+    {
+      name: 'stackmint-port-logger',
+      configureServer(server) {
+        server.httpServer?.once('listening', () => {
+          const address = server.httpServer?.address();
+          const port = typeof address === 'object' ? address?.port : null;
+          if (port) {
+            console.log(\`\\n✨ Server running at http://localhost:\${port}\\n\`);
+          }
+        });
+      }
+    }
+  ],
+  server: {
+    port: 3000,
+    strictPort: true,
+    host: true,
+  },
 });
 `,
     },
@@ -2736,13 +2908,26 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(), 
+    tailwindcss(),
+    {
+      name: 'stackmint-port-logger',
+      configureServer(server) {
+        server.httpServer?.once('listening', () => {
+          const address = server.httpServer?.address();
+          const port = typeof address === 'object' ? address?.port : null;
+          if (port) {
+            console.log(\`\\n✨ Server running at http://localhost:\${port}\\n\`);
+          }
+        });
+      }
+    }
+  ],
   server: {
-    port: 5173,
-  },
-  build: {
-    outDir: 'dist',
-    sourcemap: false,
+    port: 3000,
+    strictPort: true,
+    host: true,
   },
 });
 `,
@@ -2922,7 +3107,7 @@ export default function RootLayout() {
 registerTemplate({
   id: 'express',
   files: (config: StackConfig): AdapterFile[] => {
-    const landingHTML = getStaticFrontendMarkup({
+    const landingHTML = getStaticFrontendHTML({
       framework: 'Express',
       runtime: 'Express.js',
       styling: 'HTML/CSS',
@@ -2964,7 +3149,7 @@ app.get('/api/health', (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(\`Server running on http://localhost:\${port}\`);
+  console.log(\`\\n✨ Server running at http://localhost:\${port}\\n\`);
 });
 `,
       },
@@ -3421,6 +3606,17 @@ registerTemplate({
     if (config.deployTarget === 'vercel') preset = 'vercel';
     if (config.deployTarget === 'cloudflare-workers') preset = 'cloudflare';
 
+    const landingHTML = getStaticFrontendHTML({
+      framework: 'Nitro',
+      runtime: 'Nitro',
+      styling: 'HTML/CSS',
+      build: 'Server Engine',
+      detail: 'Next-generation server engine',
+      editPath: 'routes/index.ts',
+      actionHref: '/api/health',
+      actionLabel: 'Check API Health',
+    });
+
     return [
       {
         path: 'nitro.config.ts',
@@ -3434,8 +3630,10 @@ registerTemplate({
       },
       {
         path: 'routes/index.ts',
-        content: `export default defineEventHandler(() => {
-    return { message: 'Hello from Nitro' };
+        content: `const landingHTML = \`${landingHTML.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`;
+export default defineEventHandler((event) => {
+    event.node.res.setHeader('content-type', 'text/html');
+    return landingHTML;
 });
 `,
       },
@@ -3444,6 +3642,7 @@ registerTemplate({
         content: `export default defineEventHandler(() => {
     return {
         status: 'ok',
+        framework: 'nitro',
         timestamp: new Date().toISOString()
     };
 });
@@ -3599,6 +3798,41 @@ export default component$(() => {
 });
 `,
     },
+    {
+      path: 'vite.config.ts',
+      content: `import { defineConfig } from 'vite';
+import { qwikVite } from '@builder.io/qwik/optimizer';
+import { qwikCity } from '@builder.io/qwik-city/vite';
+import tsconfigPaths from 'vite-tsconfig-paths';
+import tailwindcss from '@tailwindcss/vite';
+
+export default defineConfig({
+  plugins: [
+    qwikCity(), 
+    qwikVite(), 
+    tsconfigPaths(), 
+    tailwindcss(),
+    {
+      name: 'stackmint-port-logger',
+      configureServer(server) {
+        server.httpServer?.once('listening', () => {
+          const address = server.httpServer?.address();
+          const port = typeof address === 'object' ? address?.port : null;
+          if (port) {
+            console.log(\`\\n✨ Server running at http://localhost:\${port}\\n\`);
+          }
+        });
+      }
+    }
+  ],
+  server: {
+    port: 3000,
+    strictPort: true,
+    host: true,
+  },
+});
+`,
+    },
   ],
   scripts: { 
     dev: 'qwik dev', 
@@ -3744,6 +3978,17 @@ bootstrapApplication(AppComponent);
 registerTemplate({
   id: 'elysia',
   files: (): AdapterFile[] => {
+    const landingHTML = getStaticFrontendHTML({
+      framework: 'Elysia',
+      runtime: 'Elysia + Bun',
+      styling: 'HTML/CSS',
+      build: 'API Server',
+      detail: 'Blazingly fast Bun web framework',
+      editPath: 'src/index.ts',
+      actionHref: '/health',
+      actionLabel: 'Check API Health',
+    });
+
     return [
       {
         path: 'src/index.ts',
@@ -3754,86 +3999,7 @@ const app = new Elysia()
   .use(staticPlugin({
     assets: 'public'
   }))
-  .get("/", () => \`<div class="stackmint-shell">
-  <header class="topbar">
-    <a class="brand-mark" href="https://stackmint-docs.vercel.app" target="_blank" rel="noreferrer">
-      <span class="brand-glyph">S</span>
-      <span class="brand-name">
-        <strong>stackmint</strong>
-        <span>TypeScript starter</span>
-      </span>
-    </a>
-    <a class="topbar-link" href="https://github.com/senapati484/stackmint" target="_blank" rel="noreferrer">
-      GitHub
-    </a>
-  </header>
-
-  <main class="hero">
-    <section class="hero-copy" aria-labelledby="hero-title">
-      <span class="eyebrow"><span class="pulse"></span> Prebuilt frontend template</span>
-      <h1 id="hero-title">
-        Shape your <span class="accent">Elysia</span> launch surface.
-      </h1>
-      <p class="hero-lede">
-        A polished stackmint canvas with real brand artwork, responsive panels,
-        and a consistent layout ready to power your backend API.
-      </p>
-
-      <div class="actions">
-        <a class="button button-primary" href="/health">
-          Check API Health
-        </a>
-        <a class="button button-secondary" href="https://stackmint-docs.vercel.app" target="_blank" rel="noreferrer">
-          Open docs
-        </a>
-      </div>
-
-      <div class="signal-grid" aria-label="Template highlights">
-        <article class="signal-card">
-          <span>Runtime</span>
-          <strong>Elysia + Bun</strong>
-          <p>Blazingly fast Bun web framework</p>
-        </article>
-        <article class="signal-card">
-          <span>Build</span>
-          <strong>API Server</strong>
-          <p>Ready for the framework workflow</p>
-        </article>
-        <article class="signal-card">
-          <span>Performance</span>
-          <strong>Type-Safe</strong>
-          <p>Full TypeScript support built-in</p>
-        </article>
-      </div>
-    </section>
-
-    <section class="hero-visual" aria-label="stackmint preview">
-      <div class="logo-stage">
-        <img class="logo-image" src="/logo.png" alt="stackmint" />
-      </div>
-      <aside class="framework-card">
-        <span>Backend Framework</span>
-        <strong>Elysia</strong>
-        <p>Type-safe Bun web framework for APIs</p>
-      </aside>
-
-      <div class="status-row">
-        <div class="mini-panel">
-          <span>Edit surface</span>
-          <strong><code>src/index.ts</code></strong>
-        </div>
-        <div class="mini-panel">
-          <span>Dev server</span>
-          <strong><code>npm run dev</code></strong>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <footer class="footer-note">
-    Built with stackmint. Keep this layout and modify your API endpoints in src/index.ts.
-  </footer>
-</div>\`)
+  .get("/", () => \`${landingHTML.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)
   .get("/health", () => ({ 
     status: "ok", 
     framework: "elysia",
@@ -3841,7 +4007,7 @@ const app = new Elysia()
   }))
   .listen(3000);
 
-console.log(\`🦊 Elysia is running at http://\${app.server?.hostname}:\${app.server?.port}\`);
+console.log(\`\\n✨ Server running at http://localhost:\${app.server?.port}\\n\`);
 `,
       },
       {
@@ -3876,7 +4042,7 @@ console.log(\`🦊 Elysia is running at http://\${app.server?.hostname}:\${app.s
 registerTemplate({
   id: 'fastify',
   files: (): AdapterFile[] => {
-    const landingHTML = getStaticFrontendMarkup({
+    const landingHTML = getStaticFrontendHTML({
       framework: 'Fastify',
       runtime: 'Fastify',
       styling: 'HTML/CSS',
@@ -3896,7 +4062,7 @@ import { fileURLToPath } from 'url';
 import fastifyStatic from '@fastify/static';
 
 const fastify = Fastify({
-  logger: true
+  logger: false
 });
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -3906,9 +4072,11 @@ await fastify.register(fastifyStatic, {
   prefix: '/',
 });
 
+const landingHTML = \`${landingHTML.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`;
+
 fastify.get('/', async function(request, reply) {
   reply.type('text/html');
-  return \`${landingHTML.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`;
+  return landingHTML;
 });
 
 fastify.get('/api/health', async function(request, reply) {
@@ -3921,7 +4089,9 @@ fastify.get('/api/health', async function(request, reply) {
 
 const start = async () => {
   try {
-    await fastify.listen({ port: 3000 });
+    const port = 3000;
+    await fastify.listen({ port });
+    console.log(\`\\n✨ Server running at http://localhost:\${port}\\n\`);
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);
@@ -3976,7 +4146,7 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   await app.listen(3000, () => {
-    console.log('🏗️  NestJS app is running on http://localhost:3000');
+    console.log(\`\\n✨ Server running at http://localhost:3000\\n\`);
   });
 }
 bootstrap();
@@ -4078,7 +4248,7 @@ export class AppService {
 registerTemplate({
   id: 'h3',
   files: (): AdapterFile[] => {
-    const landingHTML = getStaticFrontendMarkup({
+    const landingHTML = getStaticFrontendHTML({
       framework: 'H3',
       runtime: 'H3',
       styling: 'HTML/CSS',
@@ -4092,16 +4262,19 @@ registerTemplate({
     return [
       {
         path: 'src/index.ts',
-        content: `import { createApp, createRouter, defineEventHandler } from 'h3';
+        content: `import { createApp, createRouter, defineEventHandler, eventHandler } from 'h3';
 
 const app = createApp();
 const router = createRouter();
 
 const landingHTML = \`${landingHTML.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`;
 
-router.get('/', defineEventHandler(() => c.html(landingHTML)));
+router.get('/', eventHandler((event) => {
+  event.node.res.setHeader('content-type', 'text/html');
+  return landingHTML;
+}));
 
-router.get('/api/health', defineEventHandler(() => ({
+router.get('/api/health', eventHandler(() => ({
   status: 'ok',
   framework: 'h3',
   timestamp: new Date().toISOString(),
@@ -4144,7 +4317,7 @@ export default app;
 registerTemplate({
   id: 'bun-native',
   files: (): AdapterFile[] => {
-    const landingHTML = getStaticFrontendMarkup({
+    const landingHTML = getStaticFrontendHTML({
       framework: 'Bun',
       runtime: 'Bun Native',
       styling: 'HTML/CSS',
@@ -4184,7 +4357,7 @@ Bun.serve({
   },
 });
 
-console.log('🚀 Bun server running at http://localhost:3000');
+console.log(\`\\n✨ Server running at http://localhost:3000\\n\`);
 `,
       },
       {
@@ -4960,7 +5133,26 @@ export const routes: Routes = [];
 import angular from '@analogjs/platform';
 
 export default defineConfig({
-  plugins: [angular()],
+  plugins: [
+    angular(),
+    {
+      name: 'stackmint-port-logger',
+      configureServer(server) {
+        server.httpServer?.once('listening', () => {
+          const address = server.httpServer?.address();
+          const port = typeof address === 'object' ? address?.port : null;
+          if (port) {
+            console.log(\`\\n✨ Server running at http://localhost:\${port}\\n\`);
+          }
+        });
+      }
+    }
+  ],
+  server: {
+    port: 3000,
+    strictPort: true,
+    host: true,
+  },
 });
 `,
     },
