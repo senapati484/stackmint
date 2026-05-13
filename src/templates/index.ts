@@ -1186,7 +1186,9 @@ const app = new Hono();
 app.use('*', cors());
 app.use('*', logger());
 
-app.get('/', (c) => c.html(\`${landingHTML.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`));
+const landingHTML = \`${landingHTML.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`;
+
+app.get('/', (c) => c.html(landingHTML));
 app.get('/api/health', (c) => c.json({ 
   status: 'ok',
   framework: 'hono',
@@ -1206,7 +1208,9 @@ const app = new Hono();
 app.use('*', cors());
 app.use('*', logger());
 
-app.get('/', (c) => c.html(\`${landingHTML.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`));
+const landingHTML = \`${landingHTML.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`;
+
+app.get('/', (c) => c.html(landingHTML));
 app.get('/api/health', (c) => c.json({ 
   status: 'ok',
   framework: 'hono',
@@ -2944,8 +2948,10 @@ const __dirname = path.dirname(__filename);
 
 app.use(express.static(path.join(__dirname, '../public')));
 
+const landingHTML = \`${landingHTML.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`;
+
 app.get('/', (req, res) => {
-  res.send(\`${landingHTML.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`);
+  res.send(landingHTML);
 });
 
 app.get('/api/health', (req, res) => {
@@ -4091,7 +4097,9 @@ registerTemplate({
 const app = createApp();
 const router = createRouter();
 
-router.get('/', defineEventHandler(() => c.html(\`${landingHTML.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\` )));
+const landingHTML = \`${landingHTML.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`;
+
+router.get('/', defineEventHandler(() => c.html(landingHTML)));
 
 router.get('/api/health', defineEventHandler(() => ({
   status: 'ok',
