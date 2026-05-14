@@ -230,8 +230,11 @@ export function registerHonoFrameworkAdapter(): void {
     files: (): AdapterFile[] => [],
     dependencies: (): AdapterDependency[] => [
       { name: 'hono', version: '^4.0.0' },
+      { name: '@hono/node-server', version: '^1.0.0' },
       { name: 'typescript', version: '^5.3.0', dev: true },
       { name: '@types/node', version: '^20.0.0', dev: true },
+      { name: 'tsx', version: '^4.7.0', dev: true },
+      { name: 'tsup', version: '^8.0.0', dev: true },
     ],
     condition: (config: StackConfig) => config.framework === 'hono',
   };
