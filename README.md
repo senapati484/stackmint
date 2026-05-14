@@ -1,9 +1,8 @@
 [![stackmint Logo](./public/img/logo.png)](https://github.com/senapati484/stackmint)
 
 [![CI](https://github.com/senapati484/stackmint/actions/workflows/ci.yml/badge.svg)](https://github.com/senapati484/stackmint/actions/workflows/ci.yml)
-[![Template Smoke Tests](https://github.com/senapati484/stackmint/actions/workflows/smoke.yml/badge.svg)](https://github.com/senapati484/stackmint/actions/workflows/smoke.yml)
-[![NPM Version](https://img.shields.io/npm/v/stackmint.svg)](https://www.npmjs.com/package/stackmint)
 [![NPM Downloads](https://img.shields.io/npm/dm/stackmint.svg)](https://www.npmjs.com/package/stackmint)
+[![NPM Version](https://img.shields.io/npm/v/stackmint.svg)](https://www.npmjs.com/package/stackmint)
 [![NPM Unpacked Size](https://img.shields.io/npm/unpacked-size/stackmint)](https://www.npmjs.com/package/stackmint)
 [![GitHub stars](https://img.shields.io/github/stars/senapati484/stackmint)](https://github.com/senapati484/stackmint/stargazers)
 [![GitHub issues](https://img.shields.io/github/issues/senapati484/stackmint)](https://github.com/senapati484/stackmint/issues)
