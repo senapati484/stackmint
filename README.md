@@ -1,7 +1,14 @@
 [![stackmint Logo](/public/img/logo.png)](https://github.com/senapati484/stackmint)
 
+[![CI](https://github.com/senapati484/stackmint/actions/workflows/ci.yml/badge.svg)](https://github.com/senapati484/stackmint/actions/workflows/ci.yml)
+[![Template Smoke Tests](https://github.com/senapati484/stackmint/actions/workflows/smoke.yml/badge.svg)](https://github.com/senapati484/stackmint/actions/workflows/smoke.yml)
 [![NPM Version](https://img.shields.io/npm/v/stackmint.svg)](https://www.npmjs.com/package/stackmint)
 [![NPM Downloads](https://img.shields.io/npm/dm/stackmint.svg)](https://www.npmjs.com/package/stackmint)
+[![Bundle Size](https://img.shields.io/bundlephobia/minzip/stackmint)](https://bundlephobia.com/package/stackmint)
+[![GitHub stars](https://img.shields.io/github/stars/senapati484/stackmint)](https://github.com/senapati484/stackmint/stargazers)
+[![GitHub issues](https://img.shields.io/github/issues/senapati484/stackmint)](https://github.com/senapati484/stackmint/issues)
+[![GitHub last commit](https://img.shields.io/github/last-commit/senapati484/stackmint)](https://github.com/senapati484/stackmint/commits/main)
+[![GitHub commit activity](https://img.shields.io/github/commit-activity/m/senapati484/stackmint)](https://github.com/senapati484/stackmint/graphs/commit-activity)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 > Scaffold any TypeScript full-stack project in seconds.
@@ -16,8 +23,8 @@ npm create stackmint@latest
 
 - **34+ frameworks** supported
 - **50+ integrations** (ORMs, auth, AI, payments, etc.)
-- **9 presets** for common stacks
-- **11 AI IDE configs** (Claude Code, OpenCode, Cursor, Copilot, Windsurf, Continue.dev, Sourcegraph Cody, and more)
+- **13+ presets** for common stacks
+- **11+ AI IDE configs** (Claude Code, OpenCode, Cursor, Copilot, Windsurf, Continue.dev, Sourcegraph Cody, and more)
 - **Conflict resolution** with smart defaults
 
 ## Quick Start
