@@ -1,26 +1,25 @@
 {
   "name": "stackmint",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Scaffold any TypeScript full-stack project in seconds",
   "type": "module",
   "bin": {
     "stackmint": "dist/bin/stackmint.js"
   },
   "files": [
-    "dist",
-    "public/bgremove/logo.png",
-    "scripts/embed-logo.cjs"
+    "dist"
   ],
   "scripts": {
     "dev": "bun run bin/stackmint.ts",
-    "build": "node scripts/embed-logo.cjs && tsup bin/stackmint.ts --format esm --out-dir dist/bin --no-dts && node -e \"const fs=require('fs');let f=fs.readFileSync('dist/bin/stackmint.js','utf8');fs.writeFileSync('dist/bin/stackmint.js',f.replace('#!/usr/bin/env node','#!/usr/bin/env -S node --no-warnings'))\"",
+    "build": "node scripts/embed-logo.cjs && tsup",
+    "build:check": "npm run build && node dist/bin/stackmint.js --version",
     "test": "vitest run",
     "test:smoke": "vitest run tests/smoke",
-    "test:frameworks": "bun test-frameworks.ts",
-    "test:integration": "bun test-integration.ts",
+    "test:frameworks": "bun tests/test-frameworks.ts",
+    "test:integration": "bun tests/test-integration.ts",
     "lint": "echo 'No lint configured'",
     "typecheck": "tsc --noEmit",
-    "postinstall": "node scripts/patch-tsx-warnings.js"
+    "prepublishOnly": "npm run build && npm run build:check"
   },
   "keywords": [
     "scaffold",

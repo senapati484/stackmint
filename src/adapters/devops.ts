@@ -193,10 +193,13 @@ npx lint-staged
       },
     ],
     dependencies: () => [
-      { name: 'husky', version: '^9.0.0', dev: true },
+      { name: 'husky', version: '^9.1.7', dev: true },
       { name: 'lint-staged', version: '^15.0.0', dev: true },
     ],
-    postInstall: ['npx husky install'],
+    scripts: {
+      prepare: 'husky',
+    },
+    postInstall: ['npx husky'],
   };
 
   const changesetsAdapter: Adapter = {

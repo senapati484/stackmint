@@ -35,6 +35,11 @@ export async function writeProject(
 
     fs.ensureDirSync(dir);
 
+    // Skip .gitkeep files - we just wanted to ensure the directory exists
+    if (path.basename(file.path) === '.gitkeep') {
+      continue;
+    }
+
     if (fs.existsSync(fullPath) && file.overwrite !== true) {
       log.info(`Skipped existing: ${file.path}`);
       continue;

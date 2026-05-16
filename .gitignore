@@ -5,6 +5,11 @@ dist
 .env.local
 *.log
 .DS_Store
+
+# Generated test output projects
+t3-stack/
+test-output/
+*.generated/
 .turbo
 coverage
 plan.md
