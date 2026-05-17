@@ -82,14 +82,6 @@ export const CONFLICT_RULES: ConflictRule[] = [
     message: 'API layers require a server runtime. Removed for static framework.',
     severity: 'info',
   },
-  // C10: multiple auth libraries → keep first, warn
-  {
-    id: 'C10',
-    check: (c) => ['better-auth', 'clerk', 'next-auth', 'lucia'].filter(a => c.auth === a).length > 0,
-    resolve: (c) => c,
-    message: 'Only one auth library allowed.',
-    severity: 'warn',
-  },
   // C11: Lucia → swap to better-auth
   {
     id: 'C11',
@@ -145,14 +137,6 @@ export const CONFLICT_RULES: ConflictRule[] = [
     resolve: (c) => c,
     message: 'Gatsby is in maintenance mode (2025). Consider Astro for content/static sites.',
     severity: 'warn',
-  },
-  // C18: Next.js Pages Router referenced → info
-  {
-    id: 'C18',
-    check: (c) => c.framework === 'nextjs' && c.deployTarget !== 'cloudflare-workers',
-    resolve: (c) => c,
-    message: 'App Router is recommended for all new Next.js projects.',
-    severity: 'info',
   },
   // C19: Neon + Cloudflare Workers → info
   {

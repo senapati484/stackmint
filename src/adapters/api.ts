@@ -77,10 +77,10 @@ export function getBaseUrl() {
             content: `'use client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { httpBatchLink } from '@trpc/client';
-import { useState } from 'react';
+import React, { useState, type ReactNode } from 'react';
 import { trpc, getBaseUrl } from '@/utils/trpc';
 
-export function TRPCProvider({ children }: { children: React.ReactNode }) {
+export function TRPCProvider({ children }: { children: ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
   const [trpcClient] = useState(() =>
     trpc.createClient({
