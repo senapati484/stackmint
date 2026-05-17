@@ -4,11 +4,20 @@ import { TEMPLATE_REGISTRY } from './registry.js';
 import { getFrontendGlobalStyles, getFrontendAppStyles } from './shared/styles.js';
 import { getStaticFrontendMarkup, getStaticFrontendHTML } from './shared/markup.js';
 import { getStackmintLogoFile } from './shared/logo.js';
+import { buildStackmintConfigLib } from './shared/config.js';
+import { buildUtilsFile } from './shared/providers.js';
+import { buildTestingSetup, buildPlaywrightConfig } from './shared/testing.js';
+import { buildDockerfile } from './shared/docker.js';
 
 TEMPLATE_REGISTRY.set('angular', {
 
   id: 'angular',
-  files: (config: StackConfig): AdapterFile[] => [
+  files: (config: StackConfig): AdapterFile[] => {
+    const utilsFile = buildUtilsFile();
+    const testingFiles = buildTestingSetup(config);
+    const dockerfile = buildDockerfile(config);
+
+    const files: AdapterFile[] = [
     {
       path: 'stackmint.config.json',
       content: JSON.stringify(config, null, 2),
@@ -128,10 +137,62 @@ import { AppComponent } from './app/app.component';
 bootstrapApplication(AppComponent);
 `,
     },
-  ],
-  scripts: { 
-    dev: 'ng serve', 
-    build: 'ng build',
-    start: 'ng serve --open',
+    {
+      path: 'src/lib/stackmint-config.ts',
+      content: buildStackmintConfigLib(config),
+    },
+    getStackmintLogoFile(),
+    {
+      path: 'public/logo.png',
+      content: '',
+    },
+    utilsFile,
+    ...testingFiles,
+    ...(dockerfile ? [dockerfile] : []),
+    ...(config.testing?.includes('playwright') ? [buildPlaywrightConfig()] : []),
+    ];
+
+    return files;
+  },
+
+  scripts: (config: StackConfig): Record<string, string> => {
+    const scripts: Record<string, string> = {
+      dev: 'ng serve',
+      build: 'ng build',
+      start: 'ng serve --open',
+    };
+
+    if (config.testing?.includes('vitest')) {
+      scripts.test = 'vitest run';
+      scripts['test:watch'] = 'vitest';
+    }
+
+    if (config.testing?.includes('playwright')) {
+      scripts['test:e2e'] = 'playwright test';
+    }
+
+    return scripts;
+  },
+
+  dependencies: (config: StackConfig): AdapterDependency[] => {
+    const deps: AdapterDependency[] = [];
+
+    if (config.styling === 'tailwind' || config.uiLibrary === 'shadcn') {
+      deps.push({ name: 'next-themes', version: '^0.4.3' });
+    }
+
+    if (config.uiLibrary === 'shadcn') {
+      deps.push({ name: 'sonner', version: '^1.7.0' });
+    }
+
+    if (config.testing?.includes('vitest')) {
+      deps.push(
+        { name: '@angular/testing', version: '^19.0.0', dev: true },
+        { name: 'vitest', version: '^2.0.0', dev: true },
+        { name: 'jsdom', version: '^25.0.0', dev: true },
+      );
+    }
+
+    return deps;
   },
 });

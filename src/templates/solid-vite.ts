@@ -4,11 +4,20 @@ import { TEMPLATE_REGISTRY } from './registry.js';
 import { getFrontendGlobalStyles, getFrontendAppStyles } from './shared/styles.js';
 import { getStaticFrontendMarkup, getStaticFrontendHTML } from './shared/markup.js';
 import { getStackmintLogoFile } from './shared/logo.js';
+import { buildStackmintConfigLib } from './shared/config.js';
+import { buildUtilsFile } from './shared/providers.js';
+import { buildTestingSetup, buildPlaywrightConfig } from './shared/testing.js';
+import { buildDockerfile } from './shared/docker.js';
 
 TEMPLATE_REGISTRY.set('solid-vite', {
 
   id: 'solid-vite',
-  files: (config: StackConfig): AdapterFile[] => [
+  files: (config: StackConfig): AdapterFile[] => {
+    const utilsFile = buildUtilsFile();
+    const testingFiles = buildTestingSetup(config);
+    const dockerfile = buildDockerfile(config);
+
+    return [
     {
       path: 'stackmint.config.json',
       content: JSON.stringify(config, null, 2),
@@ -121,6 +130,10 @@ export default App;
 `,
     },
     {
+      path: 'src/lib/stackmint-config.ts',
+      content: buildStackmintConfigLib(config),
+    },
+    {
       path: 'src/styles/globals.css',
       content: `${getFrontendGlobalStyles()}`,
     },
@@ -142,7 +155,7 @@ export default App;
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Built with stackmint - scaffold any TypeScript stack in seconds" />
-    <title>Solid + Vite App</title>
+    <title>SolidJS + Vite App</title>
   </head>
   <body>
     <div id="root"></div>
@@ -155,25 +168,11 @@ export default App;
       path: 'vite.config.ts',
       content: `import { defineConfig } from 'vite';
 import solid from 'vite-plugin-solid';
+import tsconfigPaths from 'vite-tsconfig-paths';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
-  plugins: [
-    solid(), 
-    tailwindcss(),
-    {
-      name: 'stackmint-port-logger',
-      configureServer(server) {
-        server.httpServer?.once('listening', () => {
-          const address = server.httpServer?.address();
-          const port = typeof address === 'object' ? address?.port : null;
-          if (port) {
-            console.log(\`\\n✨ Server running at http://localhost:\${port}\\n\`);
-          }
-        });
-      }
-    }
-  ],
+  plugins: [solid(), tsconfigPaths(), tailwindcss()],
   server: {
     port: 3000,
     strictPort: false,
@@ -213,10 +212,51 @@ export default {
         include: ['src']
       }, null, 2),
     },
-  ],
-  scripts: {
-    dev: 'vite',
-    build: 'tsc && vite build',
-    preview: 'vite preview',
+    utilsFile,
+    ...testingFiles,
+    ...(dockerfile ? [dockerfile] : []),
+    ...(config.testing?.includes('playwright') ? [buildPlaywrightConfig()] : []),
+    ];
+  },
+
+  scripts: (config: StackConfig): Record<string, string> => {
+    const scripts: Record<string, string> = {
+      dev: 'vite',
+      build: 'tsc && vite build',
+      preview: 'vite preview',
+    };
+
+    if (config.testing?.includes('vitest')) {
+      scripts.test = 'vitest run';
+      scripts['test:watch'] = 'vitest';
+    }
+
+    if (config.testing?.includes('playwright')) {
+      scripts['test:e2e'] = 'playwright test';
+    }
+
+    return scripts;
+  },
+
+  dependencies: (config: StackConfig): AdapterDependency[] => {
+    const deps: AdapterDependency[] = [];
+
+    if (config.styling === 'tailwind' || config.uiLibrary === 'shadcn') {
+      deps.push({ name: 'next-themes', version: '^0.4.3' });
+    }
+
+    if (config.uiLibrary === 'shadcn') {
+      deps.push({ name: 'sonner', version: '^1.7.0' });
+    }
+
+    if (config.testing?.includes('vitest')) {
+      deps.push(
+        { name: '@testing-library/solid', version: '^5.0.0', dev: true },
+        { name: 'vitest', version: '^2.0.0', dev: true },
+        { name: 'jsdom', version: '^25.0.0', dev: true },
+      );
+    }
+
+    return deps;
   },
 });

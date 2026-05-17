@@ -4,6 +4,8 @@ import { TEMPLATE_REGISTRY } from './registry.js';
 import { getFrontendGlobalStyles, getFrontendAppStyles } from './shared/styles.js';
 import { getStaticFrontendMarkup, getStaticFrontendHTML } from './shared/markup.js';
 import { getStackmintLogoFile } from './shared/logo.js';
+import { buildTestingSetup, buildPlaywrightConfig } from './shared/testing.js';
+import { buildDockerfile } from './shared/docker.js';
 
 TEMPLATE_REGISTRY.set('bun-native', {
 

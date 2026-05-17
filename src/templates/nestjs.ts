@@ -4,11 +4,17 @@ import { TEMPLATE_REGISTRY } from './registry.js';
 import { getFrontendGlobalStyles, getFrontendAppStyles } from './shared/styles.js';
 import { getStaticFrontendMarkup, getStaticFrontendHTML } from './shared/markup.js';
 import { getStackmintLogoFile } from './shared/logo.js';
+import { buildTestingSetup, buildPlaywrightConfig } from './shared/testing.js';
+import { buildDockerfile } from './shared/docker.js';
 
 TEMPLATE_REGISTRY.set('nestjs', {
 
   id: 'nestjs',
-  files: (config: StackConfig): AdapterFile[] => [
+  files: (config: StackConfig): AdapterFile[] => {
+    const testingFiles = buildTestingSetup(config);
+    const dockerfile = buildDockerfile(config);
+
+    return [
     {
       path: 'stackmint.config.json',
       content: JSON.stringify(config, null, 2),
@@ -133,13 +139,48 @@ export class AppService {
         },
       }, null, 2),
     },
-    {
+{
       path: 'tsconfig.build.json',
       content: JSON.stringify({
         extends: './tsconfig.json',
         exclude: ['node_modules', 'dist', 'test', '**/*spec.ts'],
       }, null, 2),
     },
-  ],
-  scripts: { dev: 'nest start --watch', build: 'nest build', start: 'node dist/main' },
+    ...testingFiles,
+    ...(dockerfile ? [dockerfile] : []),
+    ...(config.testing?.includes('playwright') ? [buildPlaywrightConfig()] : []),
+    ];
+  },
+
+  scripts: (config: StackConfig): Record<string, string> => {
+    const scripts: Record<string, string> = {
+      dev: 'nest start --watch',
+      build: 'nest build',
+      start: 'node dist/main',
+    };
+
+    if (config.testing?.includes('vitest')) {
+      scripts.test = 'vitest run';
+      scripts['test:watch'] = 'vitest';
+    }
+
+    if (config.testing?.includes('playwright')) {
+      scripts['test:e2e'] = 'playwright test';
+    }
+
+    return scripts;
+  },
+
+  dependencies: (config: StackConfig): AdapterDependency[] => {
+    const deps: AdapterDependency[] = [];
+
+    if (config.testing?.includes('vitest')) {
+      deps.push(
+        { name: '@nestjs/testing', version: '^10.0.0', dev: true },
+        { name: 'vitest', version: '^2.0.0', dev: true },
+      );
+    }
+
+    return deps;
+  },
 });

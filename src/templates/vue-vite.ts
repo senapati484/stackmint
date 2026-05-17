@@ -4,18 +4,27 @@ import { TEMPLATE_REGISTRY } from './registry.js';
 import { getFrontendGlobalStyles, getFrontendAppStyles } from './shared/styles.js';
 import { getStaticFrontendMarkup, getStaticFrontendHTML } from './shared/markup.js';
 import { getStackmintLogoFile } from './shared/logo.js';
+import { buildStackmintConfigLib } from './shared/config.js';
+import { buildUtilsFile } from './shared/providers.js';
+import { buildTestingSetup, buildPlaywrightConfig } from './shared/testing.js';
+import { buildDockerfile } from './shared/docker.js';
 
 TEMPLATE_REGISTRY.set('vue-vite', {
 
   id: 'vue-vite',
-  files: (config: StackConfig): AdapterFile[] => [
+  files: (config: StackConfig): AdapterFile[] => {
+    const utilsFile = buildUtilsFile();
+    const testingFiles = buildTestingSetup(config);
+    const dockerfile = buildDockerfile(config);
+
+    return [
     {
       path: 'stackmint.config.json',
       content: JSON.stringify(config, null, 2),
     },
     {
       path: 'src/App.vue',
-      content: `<script setup lang=\"ts\">
+      content: `<script setup lang="ts">
 import { ref } from 'vue';
 import { getFrameworkDescription, getFrameworkLabel, getSignals, getStackMintConfig } from './lib/stackmint-config';
 
@@ -100,9 +109,9 @@ const frameworkDescription = getFrameworkDescription(config);
 </template>
 `,
     },
-{
-  path: 'src/main.ts',
-  content: `import { createApp } from 'vue';
+    {
+      path: 'src/main.ts',
+      content: `import { createApp } from 'vue';
 import App from './App.vue';
 import './styles/globals.css';
 import './styles/app.css';
@@ -110,19 +119,23 @@ import './styles/app.css';
 const app = createApp(App);
 app.mount('#app');
 `,
-},
-{
-  path: 'src/styles/globals.css',
-    content: `${getFrontendGlobalStyles()}`,
     },
-{
-  path: 'src/styles/app.css',
-    content: `${getFrontendAppStyles()}`,
+    {
+      path: 'src/styles/globals.css',
+      content: `${getFrontendGlobalStyles()}`,
     },
-getStackmintLogoFile(),
-{
-  path: 'src/vite-env.d.ts',
-  content: `/// <reference types="vite/client" />
+    {
+      path: 'src/styles/app.css',
+      content: `${getFrontendAppStyles()}`,
+    },
+    {
+      path: 'src/lib/stackmint-config.ts',
+      content: buildStackmintConfigLib(config),
+    },
+    getStackmintLogoFile(),
+    {
+      path: 'src/vite-env.d.ts',
+      content: `/// <reference types="vite/client" />
 
 declare module '*.vue' {
   import type { DefineComponent } from 'vue';
@@ -130,10 +143,10 @@ declare module '*.vue' {
   export default component;
 }
 `,
-},
-{
-  path: 'index.html',
-  content: `<!DOCTYPE html>
+    },
+    {
+      path: 'index.html',
+      content: `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -147,16 +160,16 @@ declare module '*.vue' {
   </body>
 </html>
 `,
-},
-{
-  path: 'vite.config.ts',
-  content: `import { defineConfig } from 'vite';
+    },
+    {
+      path: 'vite.config.ts',
+      content: `import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
   plugins: [
-    vue(), 
+    vue(),
     tailwindcss(),
     {
       name: 'stackmint-port-logger',
@@ -178,10 +191,10 @@ export default defineConfig({
   },
 });
 `,
-},
-{
-  path: 'tailwind.config.ts',
-  content: `import type { Config } from 'tailwindcss';
+    },
+    {
+      path: 'tailwind.config.ts',
+      content: `import type { Config } from 'tailwindcss';
 
 export default {
   content: ['./index.html', './src/**/*.{vue,js,ts,jsx,tsx}'],
@@ -189,30 +202,71 @@ export default {
   plugins: [],
 } satisfies Config;
 `,
-},
-{
-  path: 'tsconfig.json',
-  content: JSON.stringify({
-    compilerOptions: {
-      target: 'ES2020',
-      useDefineForClassFields: true,
-      module: 'ESNext',
-      lib: ['ES2020', 'DOM', 'DOM.Iterable'],
-      skipLibCheck: true,
-      moduleResolution: 'bundler',
-      allowImportingTsExtensions: true,
-      resolveJsonModule: true,
-      isolatedModules: true,
-      noEmit: true,
-      strict: true
     },
-    include: ['src/**/*.ts', 'src/**/*.vue']
-  }, null, 2),
-},
-  ],
-scripts: {
-  dev: 'vite',
-    build: 'vue-tsc --noEmit && vite build',
+    {
+      path: 'tsconfig.json',
+      content: JSON.stringify({
+        compilerOptions: {
+          target: 'ES2020',
+          useDefineForClassFields: true,
+          module: 'ESNext',
+          lib: ['ES2020', 'DOM', 'DOM.Iterable'],
+          skipLibCheck: true,
+          moduleResolution: 'bundler',
+          allowImportingTsExtensions: true,
+          resolveJsonModule: true,
+          isolatedModules: true,
+          noEmit: true,
+          strict: true
+        },
+        include: ['src/**/*.ts', 'src/**/*.vue']
+      }, null, 2),
+    },
+    utilsFile,
+    ...testingFiles,
+    ...(dockerfile ? [dockerfile] : []),
+    ...(config.testing?.includes('playwright') ? [buildPlaywrightConfig()] : []),
+    ];
+  },
+
+  scripts: (config: StackConfig): Record<string, string> => {
+    const scripts: Record<string, string> = {
+      dev: 'vite',
+      build: 'vue-tsc --noEmit && vite build',
       preview: 'vite preview',
+    };
+
+    if (config.testing?.includes('vitest')) {
+      scripts.test = 'vitest run';
+      scripts['test:watch'] = 'vitest';
+    }
+
+    if (config.testing?.includes('playwright')) {
+      scripts['test:e2e'] = 'playwright test';
+    }
+
+    return scripts;
+  },
+
+  dependencies: (config: StackConfig): AdapterDependency[] => {
+    const deps: AdapterDependency[] = [];
+
+    if (config.styling === 'tailwind' || config.uiLibrary === 'shadcn') {
+      deps.push({ name: 'next-themes', version: '^0.4.3' });
+    }
+
+    if (config.uiLibrary === 'shadcn') {
+      deps.push({ name: 'sonner', version: '^1.7.0' });
+    }
+
+    if (config.testing?.includes('vitest')) {
+      deps.push(
+        { name: '@vue/test-utils', version: '^2.4.0', dev: true },
+        { name: 'vitest', version: '^2.0.0', dev: true },
+        { name: 'jsdom', version: '^25.0.0', dev: true },
+      );
+    }
+
+    return deps;
   },
 });

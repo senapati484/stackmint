@@ -4,11 +4,16 @@ import { TEMPLATE_REGISTRY } from './registry.js';
 import { getFrontendGlobalStyles, getFrontendAppStyles } from './shared/styles.js';
 import { getStaticFrontendMarkup, getStaticFrontendHTML } from './shared/markup.js';
 import { getStackmintLogoFile } from './shared/logo.js';
+import { buildTestingSetup, buildPlaywrightConfig } from './shared/testing.js';
+import { buildDockerfile } from './shared/docker.js';
 
 TEMPLATE_REGISTRY.set('express', {
 
   id: 'express',
   files: (config: StackConfig): AdapterFile[] => {
+    const testingFiles = buildTestingSetup(config);
+    const dockerfile = buildDockerfile(config);
+
     const landingHTML = getStaticFrontendHTML({
       framework: 'Express',
       runtime: 'Express.js',
@@ -91,11 +96,37 @@ app.listen(port, () => {
         content: '',
       },
       getStackmintLogoFile(),
+      ...testingFiles,
+      ...(dockerfile ? [dockerfile] : []),
+      ...(config.testing?.includes('playwright') ? [buildPlaywrightConfig()] : []),
     ];
   },
-  scripts: {
-    dev: 'tsx watch src/index.ts',
-    build: 'tsup src/index.ts --format esm --outDir dist',
-    start: 'node dist/index.js',
+
+  scripts: (config: StackConfig): Record<string, string> => {
+    const scripts: Record<string, string> = {
+      dev: 'tsx watch src/index.ts',
+      build: 'tsup src/index.ts --format esm --outDir dist',
+      start: 'node dist/index.js',
+    };
+
+    if (config.testing?.includes('vitest')) {
+      scripts.test = 'vitest run';
+    }
+
+    if (config.testing?.includes('playwright')) {
+      scripts['test:e2e'] = 'playwright test';
+    }
+
+    return scripts;
+  },
+
+  dependencies: (config: StackConfig): AdapterDependency[] => {
+    const deps: AdapterDependency[] = [];
+
+    if (config.testing?.includes('vitest')) {
+      deps.push({ name: 'vitest', version: '^2.0.0', dev: true });
+    }
+
+    return deps;
   },
 });
