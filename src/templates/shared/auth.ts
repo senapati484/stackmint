@@ -10,21 +10,20 @@ export function buildAuthFiles(config: StackConfig): AuthFile[] {
     return [];
   }
 
-  const framework = config.framework;
-
   switch (config.auth) {
     case 'next-auth':
-      return buildNextAuthFiles(framework);
+      return buildNextAuthFiles(config);
     case 'better-auth':
-      return buildBetterAuthFiles(framework);
+      return buildBetterAuthFiles(config);
     case 'clerk':
-      return buildClerkFiles(framework);
+      return buildClerkFiles(config);
     default:
       return [];
   }
 }
 
-function buildNextAuthFiles(framework: string): AuthFile[] {
+function buildNextAuthFiles(config: StackConfig): AuthFile[] {
+  const framework = config.framework;
   switch (framework) {
     case 'nextjs':
       return [
@@ -122,7 +121,16 @@ export async function getUserSession(request: Request) {
   }
 }
 
-function buildBetterAuthFiles(framework: string): AuthFile[] {
+function buildBetterAuthFiles(config: StackConfig): AuthFile[] {
+  const framework = config.framework;
+  const dbProvider = config.database === 'mysql' ? 'mysql' : (config.database === 'sqlite' || config.database === 'turso' ? 'sqlite' : 'pg');
+  
+  let dbImportPath = '@/lib/db';
+  if (framework === 'nextjs') dbImportPath = '@/lib/server/db';
+  else if (framework === 'sveltekit') dbImportPath = '$lib/server/db';
+  else if (framework === 'nuxt') dbImportPath = '~/server/db';
+  else if (framework === 'astro-ssr' || framework === 'astro-ssg') dbImportPath = '@/db';
+
   switch (framework) {
     case 'nextjs':
       return [
@@ -130,11 +138,11 @@ function buildBetterAuthFiles(framework: string): AuthFile[] {
           path: 'src/auth.ts',
           content: `import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-import { db } from '@/lib/db';
+import { db } from '${dbImportPath}';
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
-    provider: 'sqlite',
+    provider: '${dbProvider}',
   }),
   emailAndPassword: {
     enabled: true,
@@ -158,11 +166,11 @@ export const { GET, POST } = toNextJsHandler(auth);
           path: 'src/auth.ts',
           content: `import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-import { db } from '$lib/server/db';
+import { db } from '${dbImportPath}';
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
-    provider: 'sqlite',
+    provider: '${dbProvider}',
   }),
   emailAndPassword: {
     enabled: true,
@@ -172,12 +180,144 @@ export const auth = betterAuth({
         },
       ];
 
+    case 'nuxt':
+      return [
+        {
+          path: 'server/utils/auth.ts',
+          content: `import { betterAuth } from 'better-auth';
+import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import { db } from '${dbImportPath}';
+
+export const auth = betterAuth({
+  database: drizzleAdapter(db, {
+    provider: '${dbProvider}',
+  }),
+  emailAndPassword: {
+    enabled: true,
+  },
+});
+`,
+        },
+        {
+          path: 'server/api/auth/[...all].ts',
+          content: `import { auth } from '../utils/auth';
+
+export default defineEventHandler((event) => {
+  return auth.handler(toWebRequest(event));
+});
+`,
+        },
+      ];
+
+    case 'astro-ssr':
+    case 'astro-ssg':
+      return [
+        {
+          path: 'src/lib/auth.ts',
+          content: `import { betterAuth } from 'better-auth';
+import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import { db } from '${dbImportPath}';
+
+export const auth = betterAuth({
+  database: drizzleAdapter(db, {
+    provider: '${dbProvider}',
+  }),
+  emailAndPassword: {
+    enabled: true,
+  },
+});
+`,
+        },
+        {
+          path: 'src/pages/api/auth/[...all].ts',
+          content: `import { auth } from '../../../lib/auth';
+import type { APIRoute } from 'astro';
+
+export const ALL: APIRoute = ({ request }) => {
+  return auth.handler(request);
+};
+`,
+        },
+      ];
+
+    case 'react-router-v7':
+    case 'tanstack-start':
+      return [
+        {
+          path: 'app/lib/auth.ts',
+          content: `import { betterAuth } from 'better-auth';
+import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import { db } from '${dbImportPath}';
+
+export const auth = betterAuth({
+  database: drizzleAdapter(db, {
+    provider: '${dbProvider}',
+  }),
+  emailAndPassword: {
+    enabled: true,
+  },
+});
+`,
+        },
+        {
+          path: framework === 'react-router-v7' ? 'app/routes/api.auth.$.ts' : 'app/routes/api/auth/$.ts',
+          content: `import { auth } from '@/lib/auth';
+import type { ActionFunctionArgs, LoaderFunctionArgs } from '${framework === 'react-router-v7' ? 'react-router' : '@tanstack/react-router'}';
+
+export const action = async ({ request }: ActionFunctionArgs) => {
+  return auth.handler(request);
+};
+
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  return auth.handler(request);
+};
+`,
+        },
+      ];
+
+    case 'qwik':
+      return [
+        {
+          path: 'src/lib/auth.ts',
+          content: `import { betterAuth } from 'better-auth';
+import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import { db } from '${dbImportPath}';
+
+export const auth = betterAuth({
+  database: drizzleAdapter(db, {
+    provider: '${dbProvider}',
+  }),
+  emailAndPassword: {
+    enabled: true,
+  },
+});
+`,
+        },
+        {
+          path: 'src/routes/api/auth/[...all]/index.ts',
+          content: `import { auth } from '~/lib/auth';
+import { type RequestHandler } from '@builder.io/qwik-city';
+
+export const onGet: RequestHandler = async ({ request, send }) => {
+  const res = await auth.handler(request);
+  send(res);
+};
+
+export const onPost: RequestHandler = async ({ request, send }) => {
+  const res = await auth.handler(request);
+  send(res);
+};
+`,
+        },
+      ];
+
     default:
       return [];
   }
 }
 
-function buildClerkFiles(framework: string): AuthFile[] {
+function buildClerkFiles(config: StackConfig): AuthFile[] {
+  const framework = config.framework;
   switch (framework) {
     case 'nextjs':
       return [

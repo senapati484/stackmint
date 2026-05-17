@@ -2,34 +2,128 @@ import { StackConfig } from '../cli/types.js';
 import { AdapterFile, AdapterDependency } from '../adapters/index.js';
 import { TEMPLATE_REGISTRY } from './registry.js';
 import { getFrontendGlobalStyles, getFrontendAppStyles } from './shared/styles.js';
-import { getStaticFrontendMarkup, getStaticFrontendHTML } from './shared/markup.js';
 import { getStackmintLogoFile } from './shared/logo.js';
 import { buildStackmintConfigLib } from './shared/config.js';
-import { buildProviderComponents, buildUtilsFile } from './shared/providers.js';
-import { buildTestingSetup, buildPlaywrightConfig } from './shared/testing.js';
-import { buildDockerfile } from './shared/docker.js';
-import { buildMiddleware } from './shared/middleware.js';
 import { buildAuthFiles } from './shared/auth.js';
 
-TEMPLATE_REGISTRY.set('analog', {
+// ─── AppComponent ────────────────────────────────────────────────────────────
 
+function buildAppComponent(config: StackConfig): string {
+  return `import { Component, signal } from '@angular/core';
+import { NgFor } from '@angular/common';
+import {
+  getStackMintConfig,
+  getSignals,
+  getFrameworkLabel,
+  getFrameworkDescription,
+} from '../lib/stackmint-config';
+
+@Component({
+  selector: 'app-root',
+  standalone: true,
+  imports: [NgFor],
+  template: \`
+    <div class="stackmint-shell">
+      <header class="topbar">
+        <a class="brand-mark" href="/">
+          <span class="brand-glyph">S</span>
+          <span class="brand-name">
+            <strong>stackmint</strong>
+            <span>TypeScript starter</span>
+          </span>
+        </a>
+        <nav class="flex items-center gap-4">
+          <a class="topbar-link" href="https://github.com/senapati484/stackmint" target="_blank" rel="noreferrer">
+            GitHub
+          </a>
+        </nav>
+      </header>
+
+      <main class="hero">
+        <section class="hero-copy">
+          <span class="eyebrow">
+            <span class="pulse" /> Built with stackmint
+          </span>
+          <h1>
+            Shape your <span class="accent">{{ frameworkLabel }}</span> launch surface.
+          </h1>
+          <p class="hero-lede">
+            A production-ready Analog (Angular) template with optimized configuration, 
+            type-safe integrations, and a modern architecture.
+          </p>
+
+          <div class="actions">
+            <button
+              class="button button-primary"
+              (click)="incrementLaunches()"
+            >
+              Launch pulse {{ launches() }}
+            </button>
+            <a class="button button-secondary" href="/api/health">
+              Check API health
+            </a>
+          </div>
+
+          <div class="signal-grid">
+            <article class="signal-card" *ngFor="let s of signals">
+              <span>{{ s.label }}</span>
+              <strong>{{ s.value }}</strong>
+              <p>{{ s.detail }}</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="hero-visual">
+          <div class="logo-stage">
+            <img class="logo-image" src="/logo.png" alt="stackmint" />
+          </div>
+          <aside class="framework-card">
+            <span>Stack overview</span>
+            <strong>{{ frameworkLabel }}</strong>
+            <p>{{ frameworkDescription }}</p>
+          </aside>
+        </section>
+      </main>
+
+      <footer class="footer-note">
+        Built with stackmint · The Ultimate TypeScript Starter
+      </footer>
+    </div>
+  \`,
+})
+export class AppComponent {
+  launches = signal(1);
+  config = getStackMintConfig();
+  signals = getSignals(this.config);
+  frameworkLabel = getFrameworkLabel(this.config.framework);
+  frameworkDescription = getFrameworkDescription(this.config);
+
+  incrementLaunches() {
+    this.launches.update(v => v + 1);
+  }
+}
+`;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TEMPLATE REGISTRATION
+// ─────────────────────────────────────────────────────────────────────────────
+
+TEMPLATE_REGISTRY.set('analog', {
   id: 'analog',
+
   files: (config: StackConfig): AdapterFile[] => {
-    const providerFiles = buildProviderComponents(config);
-    const utilsFile = buildUtilsFile();
-    const testingFiles = buildTestingSetup(config);
-    const dockerfile = buildDockerfile(config);
-    const middleware = buildMiddleware(config);
-    const authFiles = buildAuthFiles(config);
+    const appName = config.projectName || 'my-app';
+    const useDocker = !!config.docker;
 
     const files: AdapterFile[] = [
-    {
-      path: 'stackmint.config.json',
-      content: JSON.stringify(config, null, 2),
-    },
-    {
-      path: 'src/main.ts',
-      content: `import { bootstrapApplication } from '@angular/platform-browser';
+      {
+        path: 'stackmint.config.json',
+        content: JSON.stringify(config, null, 2),
+      },
+      {
+        path: 'src/main.ts',
+        content: `import { bootstrapApplication } from '@angular/platform-browser';
 import { AppComponent } from './app/app.component';
 import { appConfig } from './app/app.config';
 
@@ -37,324 +131,135 @@ bootstrapApplication(AppComponent, appConfig).catch((err) =>
   console.error(err)
 );
 `,
-    },
-    {
-      path: 'src/main.server.ts',
-      content: `import { ssr } from '@analogjs/platform';
-import { bootstrap } from './main';
-
-export default ssr(bootstrap);
-`,
-    },
-    {
-      path: 'src/app/app.component.ts',
-      content: `import { Component } from '@angular/core';
-import { NgFor } from '@angular/common';
-import { getFrameworkDescription, getFrameworkLabel, getSignals, getStackMintConfig } from '../lib/stackmint-config';
-
-@Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [NgFor],
-  template: \`<div class="stackmint-shell">
-  <header class="topbar">
-    <a class="brand-mark" href="https://stackmint-docs.vercel.app" target="_blank" rel="noreferrer">
-      <span class="brand-glyph">A</span>
-      <span class="brand-name">
-        <strong>stackmint</strong>
-        <span>TypeScript starter</span>
-      </span>
-    </a>
-    <a class="topbar-link" href="https://github.com/senapati484/stackmint" target="_blank" rel="noreferrer">
-      GitHub
-    </a>
-  </header>
-
-  <main class="hero">
-    <section class="hero-copy" aria-labelledby="hero-title">
-      <span class="eyebrow"><span class="pulse"></span> Prebuilt frontend template</span>
-      <h1 id="hero-title">
-        Shape your <span class="accent">{{ frameworkLabel }}</span> launch surface.
-      </h1>
-      <p class="hero-lede">
-        A polished stackmint canvas with real brand artwork, responsive panels,
-        and a consistent layout ready to mirror across Angular projects.
-      </p>
-
-      <div class="actions">
-        <button class="button button-primary" (click)="launches = launches + 1">
-          Launch pulse {{ launches }}
-        </button>
-        <a class="button button-secondary" href="/api/health">
-          Check API health
-        </a>
-      </div>
-
-      <div class="signal-grid" aria-label="Template highlights">
-        <article class="signal-card" *ngFor="let signal of signals">
-          <span>{{ signal.label }}</span>
-          <strong>{{ signal.value }}</strong>
-          <p>{{ signal.detail }}</p>
-        </article>
-      </div>
-    </section>
-
-    <section class="hero-visual" aria-label="stackmint preview">
-      <div class="logo-stage">
-        <img class="logo-image" src="/logo.png" alt="stackmint" />
-      </div>
-      <aside class="framework-card">
-        <span>Framework</span>
-        <strong>{{ frameworkLabel }}</strong>
-        <p>{{ frameworkDescription }}</p>
-      </aside>
-
-      <div class="status-row">
-        <div class="mini-panel">
-          <span>Edit surface</span>
-          <strong><code>src/app/app.component.ts</code></strong>
-        </div>
-        <div class="mini-panel">
-          <span>Dev server</span>
-          <strong><code>npm run dev</code></strong>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <footer class="footer-note">
-    Built with stackmint. Keep this layout and swap the framework section as new templates come online.
-  </footer>
-</div>\`,
-  styles: \`@import "tailwindcss";
-
-:root {
-  --sm-bg: #05070c;
-  --sm-bg-soft: #0b1018;
-  --sm-panel: rgba(14, 20, 31, 0.86);
-  --sm-panel-strong: #111827;
-  --sm-line: rgba(255, 255, 255, 0.12);
-  --sm-line-strong: rgba(55, 255, 205, 0.36);
-  --sm-text: #f8fafc;
-  --sm-muted: #a3adbd;
-  --sm-mint: #36f0bd;
-  --sm-cyan: #55c7ff;
-  --sm-amber: #ffd166;
-  --sm-violet: #a78bfa;
-}
-
-.stackmint-shell {
-  position: relative;
-  min-height: 100vh;
-  isolation: isolate;
-}
-
-.topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: min(1180px, calc(100% - 32px));
-  min-height: 76px;
-  margin: 0 auto;
-  gap: 1rem;
-}
-
-.hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.95fr);
-  width: min(1180px, calc(100% - 32px));
-  min-height: calc(100vh - 76px);
-  margin: 0 auto;
-  padding: 48px 0 56px;
-  gap: 3rem;
-  align-items: center;
-}
-
-.signal-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.8rem;
-}
-
-.signal-card {
-  border: 1px solid var(--sm-line);
-  border-radius: 8px;
-  background: var(--sm-panel);
-  padding: 1rem;
-  min-height: 126px;
-}
-
-.button {
-  display: inline-flex;
-  min-height: 46px;
-  align-items: center;
-  justify-content: center;
-  border: 0;
-  border-radius: 8px;
-  padding: 0 1.05rem;
-  cursor: pointer;
-  font-weight: 800;
-  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
-}
-
-.button-primary {
-  background: linear-gradient(135deg, var(--sm-mint), var(--sm-cyan));
-  color: #03110d;
-}
-
-.button-secondary {
-  border: 1px solid var(--sm-line);
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--sm-text);
-}
-
-.button:hover {
-  transform: translateY(-2px);
-}
-
-@media (max-width: 920px) {
-  .hero {
-    grid-template-columns: 1fr;
-    min-height: auto;
-    padding-top: 28px;
-  }
-}\`
-})
-export class AppComponent {
-  launches = 1;
-  private readonly config = getStackMintConfig();
-  frameworkLabel = getFrameworkLabel(this.config.framework);
-  frameworkDescription = getFrameworkDescription(this.config);
-  signals = getSignals(this.config);
-}
-`,
-    },
-    {
-      path: 'src/server/public/health.ts',
-      content: `export function getHealthPayload() {
-  return {
-    status: 'ok',
-    framework: 'analog',
-    timestamp: new Date().toISOString(),
-  };
-}
-`,
-    },
-    {
-      path: 'src/server/routes/api/health.ts',
-      content: `import { defineEventHandler } from 'h3';
-import { getHealthPayload } from '../../public/health';
-
-export default defineEventHandler(() => getHealthPayload());
-`,
-    },
-    {
-      path: 'src/app/app.config.ts',
-      content: `import { ApplicationConfig, importProvidersFrom } from '@angular/core';
+      },
+      { path: 'src/app/app.component.ts', content: buildAppComponent(config) },
+      {
+        path: 'src/app/app.config.ts',
+        content: `import { ApplicationConfig } from '@angular/core';
 import { provideRouter } from '@angular/router';
-
 import { routes } from './app.routes';
 
 export const appConfig: ApplicationConfig = {
   providers: [provideRouter(routes)],
 };
 `,
-    },
-    {
-      path: 'src/app/app.routes.ts',
-      content: `import { Routes } from '@angular/router';
+      },
+      {
+        path: 'src/app/app.routes.ts',
+        content: `import { Routes } from '@angular/router';
 
 export const routes: Routes = [];
 `,
-    },
-    {
-      path: 'src/index.html',
-      content: `<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>Analog - stackmint</title>
-    <base href="/" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" type="image/x-icon" href="favicon.ico" />
-  </head>
-  <body>
-    <app-root></app-root>
-  </body>
-</html>
+      },
+      {
+        path: 'src/styles.css',
+        content: `@import "tailwindcss";
+${getFrontendGlobalStyles().replace('@import "tailwindcss";\n\n', '')}
+${getFrontendAppStyles()}`,
+      },
+      {
+        path: 'src/server/routes/api/health.ts',
+        content: `import { defineEventHandler } from 'h3';
+
+export default defineEventHandler(() => {
+  return {
+    status: 'ok',
+    framework: 'analog',
+    app: '${appName}',
+    timestamp: new Date().toISOString(),
+  };
+});
 `,
-    },
-    {
-      path: 'vite.config.ts',
-      content: `import { defineConfig } from 'vite';
+      },
+      { path: 'src/lib/stackmint-config.ts', content: buildStackmintConfigLib(config) },
+      getStackmintLogoFile(),
+      ...buildAuthFiles(config),
+      {
+        path: 'vite.config.ts',
+        content: `import { defineConfig } from 'vite';
 import angular from '@analogjs/platform';
+import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
-  plugins: [
-    angular(),
-    {
-      name: 'stackmint-port-logger',
-      configureServer(server) {
-        server.httpServer?.once('listening', () => {
-          const address = server.httpServer?.address();
-          const port = typeof address === 'object' ? address?.port : null;
-          if (port) {
-            console.log(\`\\n✨ Server running at http://localhost:\${port}\\n\`);
-          }
-        });
-      }
-    }
-  ],
+  plugins: [angular(), tailwindcss()],
   server: {
     port: 3000,
-    strictPort: false,
-    host: true,
   },
 });
 `,
-    },
-    {
-      path: 'tsconfig.json',
-      content: JSON.stringify({
-        compilerOptions: {
-          target: 'ES2022',
-          useDefineForClassFields: false,
-          forceConsistentCasingInFileNames: true,
-          strict: true,
-          noImplicitOverride: true,
-          noPropertyAccessFromIndexSignature: true,
-          noImplicitReturns: true,
-          noFallthroughCasesInSwitch: true,
-          esModuleInterop: true,
-          sourceMap: true,
-          declaration: false,
-          downlevelIteration: true,
-          experimentalDecorators: true,
-          moduleResolution: 'bundler',
-          allowSyntheticDefaultImports: true,
-          lib: ['ES2022', 'dom'],
-        },
-        angularCompilerOptions: {
-          enableI18nLegacyMessageIdFormat: false,
-          strictInjectionParameters: true,
-          strictInputAccessModifiers: true,
-          strictTemplates: true,
-        },
-      }, null, 2),
-    },
-    getStackmintLogoFile(),
-    {
-      path: 'public/favicon.ico',
-      content: '',
-    },
-    ...providerFiles,
-    utilsFile,
-    ...testingFiles,
-    ...(dockerfile ? [dockerfile] : []),
-    ...(middleware ? [middleware] : []),
-    ...(config.testing?.includes('playwright') ? [buildPlaywrightConfig()] : []),
-    ...authFiles,
+      },
+      {
+        path: 'tsconfig.json',
+        content: JSON.stringify({
+          compilerOptions: {
+            target: 'ES2022',
+            useDefineForClassFields: false,
+            forceConsistentCasingInFileNames: true,
+            strict: true,
+            noImplicitOverride: true,
+            noPropertyAccessFromIndexSignature: true,
+            noImplicitReturns: true,
+            noFallthroughCasesInSwitch: true,
+            esModuleInterop: true,
+            sourceMap: true,
+            declaration: false,
+            downlevelIteration: true,
+            experimentalDecorators: true,
+            moduleResolution: 'bundler',
+            allowSyntheticDefaultImports: true,
+            lib: ['ES2022', 'dom'],
+            paths: {
+              '@/*': ['./src/*'],
+            },
+          },
+          angularCompilerOptions: {
+            enableI18nLegacyMessageIdFormat: false,
+            strictInjectionParameters: true,
+            strictInputAccessModifiers: true,
+            strictTemplates: true,
+          },
+        }, null, 2),
+      },
     ];
+
+    if (config.testing === 'vitest' || config.testing === 'vitest+playwright') {
+      files.push(
+        {
+          path: 'vitest.config.ts',
+          content: `import { defineConfig } from 'vitest/config';
+import angular from '@analogjs/platform';
+
+export default defineConfig({
+  plugins: [angular()],
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    include: ['src/**/*.{test,spec}.{js,ts}'],
+  },
+});
+`,
+        },
+      );
+    }
+
+    if (useDocker) {
+      files.push({
+        path: 'Dockerfile',
+        content: `FROM node:20-alpine AS builder
+WORKDIR /app
+COPY . .
+RUN npm install
+RUN npm run build
+
+FROM node:20-alpine
+WORKDIR /app
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/package.json ./package.json
+EXPOSE 3000
+CMD ["npm", "start"]
+`,
+      });
+    }
 
     return files;
   },
@@ -363,11 +268,11 @@ export default defineConfig({
     const scripts: Record<string, string> = {
       dev: 'vite',
       build: 'vite build',
+      start: 'node dist/server/index.mjs',
     };
 
     if (config.testing?.includes('vitest')) {
       scripts.test = 'vitest run';
-      scripts['test:watch'] = 'vitest';
     }
 
     if (config.testing?.includes('playwright')) {
@@ -378,22 +283,11 @@ export default defineConfig({
   },
 
   dependencies: (config: StackConfig): AdapterDependency[] => {
-    const deps: AdapterDependency[] = [];
-
-    if (config.styling === 'tailwind' || config.uiLibrary === 'shadcn') {
-      deps.push({ name: 'next-themes', version: '^0.4.3' });
-    }
-
-    if (config.uiLibrary === 'shadcn') {
-      deps.push({ name: 'sonner', version: '^1.7.0' });
-    }
-
-    if (config.testing?.includes('vitest')) {
-      deps.push(
-        { name: '@testing-library/jest-dom', version: '^6.6.0', dev: true },
-        { name: 'vitest', version: '^2.0.0', dev: true },
-      );
-    }
+    const deps: AdapterDependency[] = [
+      { name: '@analogjs/platform', version: '^1.0.0' },
+      { name: '@angular/core', version: '^19.0.0' },
+      { name: '@angular/platform-browser', version: '^19.0.0' },
+    ];
 
     return deps;
   },

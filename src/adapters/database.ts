@@ -38,6 +38,13 @@ interface StackConfig {
 
 function getFrameworkDbPath(framework?: string): { dbPath: string; schemaPath: string; configPath: string; migrationsPath: string } {
   switch (framework) {
+    case 'nextjs':
+      return {
+        dbPath: 'src/lib/server/db.ts',
+        schemaPath: 'src/lib/server/schema.ts',
+        configPath: 'drizzle.config.ts',
+        migrationsPath: 'src/lib/server/migrations',
+      };
     case 'sveltekit':
       return {
         dbPath: 'src/lib/server/db/index.ts',
@@ -67,6 +74,13 @@ function getFrameworkDbPath(framework?: string): { dbPath: string; schemaPath: s
         schemaPath: 'app/db/schema.ts',
         configPath: 'drizzle.config.ts',
         migrationsPath: 'app/db/migrations',
+      };
+    case 'qwik':
+      return {
+        dbPath: 'src/lib/db.ts',
+        schemaPath: 'src/lib/schema.ts',
+        configPath: 'drizzle.config.ts',
+        migrationsPath: 'src/lib/migrations',
       };
     default:
       return {

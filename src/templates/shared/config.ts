@@ -1,6 +1,6 @@
 import { StackConfig } from '../../cli/types.js';
 
-const FRAMEWORK_LABELS: Record<string, string> = {
+export const FRAMEWORK_LABELS: Record<string, string> = {
   nextjs: 'Next.js 15',
   sveltekit: 'SvelteKit',
   nuxt: 'Nuxt 3',
@@ -9,20 +9,29 @@ const FRAMEWORK_LABELS: Record<string, string> = {
   'tanstack-start': 'TanStack Start',
   'astro-ssr': 'Astro SSR',
   'astro-ssg': 'Astro SSG',
-  'react-vite': 'React Vite',
-  'vue-vite': 'Vue Vite',
-  'svelte-vite': 'Svelte Vite',
-  'solid-vite': 'Solid Vite',
+  'react-vite': 'React 19 · SPA',
+  'vue-vite': 'Vue 3 · SPA',
+  'svelte-vite': 'Svelte 5 · SPA',
+  'solid-vite': 'Solid · SPA',
   qwik: 'Qwik',
   angular: 'Angular 19',
-  nestjs: 'NestJS',
-  express: 'Express',
-  fastify: 'Fastify',
-  hono: 'Hono',
-  elysia: 'Elysia',
-  bun: 'Bun',
-  nitro: 'Nitro',
-  h3: 'H3',
+};
+
+export const FRAMEWORK_DETAILS: Record<string, string> = {
+  nextjs: 'App Router · React 19',
+  sveltekit: 'Svelte 5 · SSR',
+  nuxt: 'Vue 3 · SSR',
+  'react-router-v7': 'React 19 · SSR',
+  analog: 'Angular 19 · SSR',
+  'tanstack-start': 'React 19 · SSR',
+  'astro-ssr': 'Astro · SSR',
+  'astro-ssg': 'Astro · SSG',
+  'react-vite': 'React 19 · SPA',
+  'vue-vite': 'Vue 3 · SPA',
+  'svelte-vite': 'Svelte 5 · SPA',
+  'solid-vite': 'Solid · SPA',
+  qwik: 'Qwik · Resumable',
+  angular: 'Angular 19',
 };
 
 export function buildStackmintConfigLib(config: StackConfig): string {
@@ -72,8 +81,16 @@ export function getStackMintConfig(): StackMintConfig {
   return ${JSON.stringify(frozen, null, 2)};
 }
 
+const FRAMEWORK_LABELS: Record<string, string> = ${JSON.stringify(FRAMEWORK_LABELS, null, 2)};
+
 export function getFrameworkLabel(id: string): string {
-  return ${JSON.stringify(FRAMEWORK_LABELS)}[id] ?? id;
+  return FRAMEWORK_LABELS[id] ?? id;
+}
+
+const FRAMEWORK_DETAILS: Record<string, string> = ${JSON.stringify(FRAMEWORK_DETAILS, null, 2)};
+
+function getFrameworkDetail(id: string): string {
+  return FRAMEWORK_DETAILS[id] ?? 'TypeScript starter';
 }
 
 export interface Signal { label: string; value: string; detail: string; }
@@ -99,26 +116,6 @@ export function getSignals(config: StackMintConfig): Signal[] {
   return s;
 }
 
-function getFrameworkDetail(framework: string): string {
-  const details: Record<string, string> = {
-    nextjs: 'App Router · React 19',
-    sveltekit: 'Svelte 5 · SSR',
-    nuxt: 'Vue 3 · SSR',
-    'react-router-v7': 'React 19 · SSR',
-    analog: 'Angular 19 · SSR',
-    'tanstack-start': 'React 19 · SSR',
-    'astro-ssr': 'Astro · SSR',
-    'astro-ssg': 'Astro · SSG',
-    'react-vite': 'React 19 · SPA',
-    'vue-vite': 'Vue 3 · SPA',
-    'svelte-vite': 'Svelte 5 · SPA',
-    'solid-vite': 'Solid · SPA',
-    qwik: 'Qwik · Resumable',
-    angular: 'Angular 19',
-  };
-  return details[framework] ?? 'TypeScript starter';
-}
-
 export function getFrameworkDescription(config: StackMintConfig): string {
   const parts: string[] = [];
   if (config.database !== 'none') parts.push('database');
@@ -129,20 +126,3 @@ export function getFrameworkDescription(config: StackMintConfig): string {
 }
 `;
 }
-
-export const FRAMEWORK_DETAILS: Record<string, string> = {
-  nextjs: 'App Router · React 19',
-  sveltekit: 'Svelte 5 · SSR',
-  nuxt: 'Vue 3 · SSR',
-  'react-router-v7': 'React 19 · SSR',
-  analog: 'Angular 19 · SSR',
-  'tanstack-start': 'React 19 · SSR',
-  'astro-ssr': 'Astro · SSR',
-  'astro-ssg': 'Astro · SSG',
-  'react-vite': 'React 19 · SPA',
-  'vue-vite': 'Vue 3 · SPA',
-  'svelte-vite': 'Svelte 5 · SPA',
-  'solid-vite': 'Solid · SPA',
-  qwik: 'Qwik · Resumable',
-  angular: 'Angular 19',
-};
