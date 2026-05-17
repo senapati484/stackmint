@@ -8,7 +8,11 @@ import { getStackmintLogoFile } from './shared/logo.js';
 TEMPLATE_REGISTRY.set('svelte-vite', {
 
   id: 'svelte-vite',
-  files: (): AdapterFile[] => [
+  files: (config: StackConfig): AdapterFile[] => [
+    {
+      path: 'stackmint.config.json',
+      content: JSON.stringify(config, null, 2),
+    },
     {
       path: 'src/main.ts',
       content: `import App from './App.svelte';
@@ -60,17 +64,18 @@ export default app;
       path: 'src/components/Hero.svelte',
       content: `<script lang="ts">
   let launches = 1;
-  const signals = [
-    { label: 'Runtime', value: 'Svelte', detail: 'Compiled UI ready' },
-    { label: 'Styling', value: 'Tailwind v4', detail: 'Loaded through the Vite plugin' },
-    { label: 'Build', value: 'SPA', detail: 'Optimized static output' },
-  ];
+  import { getFrameworkDescription, getFrameworkLabel, getSignals, getStackMintConfig } from '../lib/stackmint-config';
+
+  const config = getStackMintConfig();
+  const signals = getSignals(config);
+  const frameworkLabel = getFrameworkLabel(config.framework);
+  const frameworkDescription = getFrameworkDescription(config);
 </script>
 
 <section class="hero-copy" aria-labelledby="hero-title">
   <span class="eyebrow"><span class="pulse"></span> Prebuilt frontend template</span>
   <h1 id="hero-title">
-    Shape your <span class="accent">Svelte</span> launch surface.
+    Shape your <span class="accent">{frameworkLabel}</span> launch surface.
   </h1>
   <p class="hero-lede">
     A polished stackmint canvas with the real brand artwork, responsive panels,
@@ -103,8 +108,8 @@ export default app;
   </div>
   <aside class="framework-card">
     <span>Framework section</span>
-    <strong>Svelte + Vite</strong>
-    <p>Svelte, Vite, TypeScript, and Tailwind v4 are wired together.</p>
+    <strong>{frameworkLabel}</strong>
+    <p>{frameworkDescription}</p>
   </aside>
 
   <div class="status-row">

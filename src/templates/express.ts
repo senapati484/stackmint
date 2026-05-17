@@ -22,10 +22,27 @@ TEMPLATE_REGISTRY.set('express', {
 
     return [
       {
+        path: 'stackmint.config.json',
+        content: JSON.stringify(config, null, 2),
+      },
+      {
+        path: 'src/server/public/health.ts',
+        content: `export function getHealthPayload(app?: string) {
+  return {
+    status: 'ok',
+    framework: 'express',
+    timestamp: new Date().toISOString(),
+    ...(app ? { app } : {}),
+  };
+}
+`,
+      },
+      {
         path: 'src/index.ts',
         content: `import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { getHealthPayload } from './server/public/health';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -42,12 +59,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
-    framework: 'express',
-    timestamp: new Date().toISOString(),
-    app: '${config.projectName || 'my-api'}'
-  });
+  res.json(getHealthPayload('${config.projectName || 'my-api'}'));
 });
 
 app.listen(port, () => {

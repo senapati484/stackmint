@@ -8,18 +8,22 @@ import { getStackmintLogoFile } from './shared/logo.js';
 TEMPLATE_REGISTRY.set('qwik', {
 
   id: 'qwik',
-  files: (): AdapterFile[] => [
+  files: (config: StackConfig): AdapterFile[] => [
+    {
+      path: 'stackmint.config.json',
+      content: JSON.stringify(config, null, 2),
+    },
     {
       path: 'src/routes/index.tsx',
       content: `import { component$, useSignal } from '@builder.io/qwik';
 import { type DocumentHead } from '@builder.io/qwik-city';
+import { getFrameworkDescription, getFrameworkLabel, getSignals, getStackMintConfig } from '../lib/stackmint-config';
 import './styles/app.css';
 
-const signals = [
-  { label: 'Runtime', value: 'Qwik', detail: 'Resumability-first framework' },
-  { label: 'Styling', value: 'Tailwind v4', detail: 'Utility-first CSS framework' },
-  { label: 'Build', value: 'SPA', detail: 'Optimized static output' },
-];
+const config = getStackMintConfig();
+const signals = getSignals(config);
+const frameworkLabel = getFrameworkLabel(config.framework);
+const frameworkDescription = getFrameworkDescription(config);
 
 export default component$(() => {
   const launches = useSignal(1);
@@ -43,7 +47,7 @@ export default component$(() => {
         <section class="hero-copy" aria-labelledby="hero-title">
           <span class="eyebrow"><span class="pulse" /> Prebuilt frontend template</span>
           <h1 id="hero-title">
-            Shape your <span class="accent">Qwik</span> launch surface.
+            Shape your <span class="accent">{frameworkLabel}</span> launch surface.
           </h1>
           <p class="hero-lede">
             A polished stackmint canvas with the real brand artwork, responsive panels,
@@ -76,8 +80,8 @@ export default component$(() => {
           </div>
           <aside class="framework-card">
             <span>Framework section</span>
-            <strong>Qwik</strong>
-            <p>Qwik, TypeScript, and Tailwind v4 are configured and ready.</p>
+            <strong>{frameworkLabel}</strong>
+            <p>{frameworkDescription}</p>
           </aside>
 
           <div class="status-row">

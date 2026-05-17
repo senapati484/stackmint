@@ -8,7 +8,11 @@ import { getStackmintLogoFile } from './shared/logo.js';
 TEMPLATE_REGISTRY.set('eleventy', {
 
   id: 'eleventy',
-  files: (): AdapterFile[] => [
+  files: (config: StackConfig): AdapterFile[] => [
+    {
+      path: 'stackmint.config.json',
+      content: JSON.stringify(config, null, 2),
+    },
     {
       path: 'src/index.md',
       content: `---

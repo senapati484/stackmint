@@ -37,14 +37,13 @@ interface StackConfig {
 }
 
 export function registerBetterAuthAdapter(): void {
+  const isBetterAuthSupported = (framework?: string) => framework === 'nextjs';
+
   const adapter: Adapter = {
     id: 'better-auth',
     name: 'Better Auth',
+    condition: (config: StackConfig) => isBetterAuthSupported(config.framework),
     files: (config: StackConfig): AdapterFile[] => {
-      const framework = config.framework || 'nextjs';
-      const isNext = framework === 'nextjs' || framework === 'react-router-v7';
-      const isSvelteKit = framework === 'sveltekit';
-      
       let provider = 'pg';
       if (config.database === 'mysql') provider = 'mysql';
       else if (config.database === 'sqlite' || config.database === 'turso') provider = 'sqlite';
@@ -80,24 +79,13 @@ export const authClient = createAuthClient({
         },
       ];
 
-      if (isNext) {
+      if (config.framework === 'nextjs') {
         files.push({
           path: 'src/app/api/auth/[...all]/route.ts',
           content: `import { auth } from '@/lib/auth';
 import { toNextJsHandler } from 'better-auth/next-js';
 
 export const { GET, POST } = toNextJsHandler(auth);
-`,
-        });
-      } else if (isSvelteKit) {
-        files.push({
-          path: 'src/routes/api/auth/[...all]/+server.ts',
-          content: `import { auth } from '$lib/server/auth';
-import { toNodeHandler } from 'better-auth/node';
-import type { RequestHandler } from './$types';
-
-export const GET: RequestHandler = toNodeHandler(auth).GET as RequestHandler;
-export const POST: RequestHandler = toNodeHandler(auth).POST as RequestHandler;
 `,
         });
       }

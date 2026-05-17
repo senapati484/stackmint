@@ -8,7 +8,11 @@ import { getStackmintLogoFile } from './shared/logo.js';
 TEMPLATE_REGISTRY.set('react-vite', {
 
   id: 'react-vite',
-  files: (): AdapterFile[] => [
+  files: (config: StackConfig): AdapterFile[] => [
+    {
+      path: 'stackmint.config.json',
+      content: JSON.stringify(config, null, 2),
+    },
     {
       path: 'src/main.tsx',
       content: `import React from 'react';
@@ -70,24 +74,25 @@ export default App;
     },
     {
       path: 'src/components/Hero.tsx',
-      content: `interface HeroProps {
+      content: `import { getFrameworkDescription, getFrameworkLabel, getSignals, getStackMintConfig } from '../lib/stackmint-config';
+
+interface HeroProps {
   launches: number;
   setLaunches: (value: number) => void;
 }
 
-const signals = [
-  { label: 'Runtime', value: 'React 18', detail: 'Vite-powered HMR' },
-  { label: 'Styling', value: 'Tailwind v4', detail: 'Loaded through the Vite plugin' },
-  { label: 'Build', value: 'SPA', detail: 'Optimized static output' },
-];
-
 export function Hero({ launches, setLaunches }: HeroProps) {
+  const config = getStackMintConfig();
+  const signals = getSignals(config);
+  const frameworkLabel = getFrameworkLabel(config.framework);
+  const frameworkDescription = getFrameworkDescription(config);
+
   return (
     <>
       <section className="hero-copy" aria-labelledby="hero-title">
         <span className="eyebrow"><span className="pulse" /> Prebuilt frontend template</span>
         <h1 id="hero-title">
-          Shape your <span className="accent">React</span> launch surface.
+          Shape your <span className="accent">{frameworkLabel}</span> launch surface.
         </h1>
         <p className="hero-lede">
           A polished stackmint canvas with the real brand artwork, responsive panels,
@@ -120,8 +125,8 @@ export function Hero({ launches, setLaunches }: HeroProps) {
           </div>
           <aside className="framework-card">
             <span>Framework section</span>
-            <strong>React + Vite</strong>
-            <p>React, Vite, TypeScript, and Tailwind v4 are wired together.</p>
+            <strong>{frameworkLabel}</strong>
+            <p>{frameworkDescription}</p>
           </aside>
 
           <div className="status-row">

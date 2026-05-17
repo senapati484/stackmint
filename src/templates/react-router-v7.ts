@@ -10,17 +10,20 @@ TEMPLATE_REGISTRY.set('react-router-v7', {
   id: 'react-router-v7',
   files: (config: StackConfig): AdapterFile[] => [
     {
+      path: 'stackmint.config.json',
+      content: JSON.stringify(config, null, 2),
+    },
+    {
       path: 'app/routes/_index.tsx',
       content: `import { useState } from 'react';
-
-const signals = [
-  { label: 'Runtime', value: 'React Router v7', detail: 'File-based routing with React' },
-  { label: 'Styling', value: 'Tailwind v4', detail: 'Utility-first CSS framework' },
-  { label: 'Build', value: 'SSR Ready', detail: 'Server-side rendering capable' },
-];
+import { getFrameworkDescription, getFrameworkLabel, getSignals, getStackMintConfig } from '../lib/stackmint-config';
 
 export default function Index() {
   const [launches, setLaunches] = useState(1);
+  const config = getStackMintConfig();
+  const signals = getSignals(config);
+  const frameworkLabel = getFrameworkLabel(config.framework);
+  const frameworkDescription = getFrameworkDescription(config);
 
   return (
     <div className="stackmint-shell">
@@ -41,7 +44,7 @@ export default function Index() {
         <section className="hero-copy" aria-labelledby="hero-title">
           <span className="eyebrow"><span className="pulse" /> Prebuilt frontend template</span>
           <h1 id="hero-title">
-            Shape your <span className="accent">React Router</span> launch surface.
+            Shape your <span className="accent">{frameworkLabel}</span> launch surface.
           </h1>
           <p className="hero-lede">
             A polished stackmint canvas with the real brand artwork, responsive panels,
@@ -52,8 +55,8 @@ export default function Index() {
             <button className="button button-primary" type="button" onClick={() => setLaunches((value) => value + 1)}>
               Launch pulse {launches}
             </button>
-            <a className="button button-secondary" href="https://stackmint-docs.vercel.app" target="_blank" rel="noreferrer">
-              Open docs
+            <a className="button button-secondary" href="/api/health">
+              Check API health
             </a>
           </div>
 
@@ -74,8 +77,8 @@ export default function Index() {
           </div>
           <aside className="framework-card">
             <span>Framework section</span>
-            <strong>React Router v7</strong>
-            <p>React, React Router v7, TypeScript, and Tailwind v4 are ready.</p>
+            <strong>{frameworkLabel}</strong>
+            <p>{frameworkDescription}</p>
           </aside>
 
           <div className="status-row">
@@ -96,6 +99,26 @@ export default function Index() {
       </footer>
     </div>
   );
+}
+`,
+    },
+    {
+      path: 'app/server/public/health.ts',
+      content: `export function getHealthPayload() {
+  return {
+    status: 'ok',
+    framework: 'react-router-v7',
+    timestamp: new Date().toISOString(),
+  };
+}
+`,
+    },
+    {
+      path: 'app/routes/api.health.ts',
+      content: `import { getHealthPayload } from '../server/public/health';
+
+export function loader() {
+  return Response.json(getHealthPayload());
 }
 `,
     },

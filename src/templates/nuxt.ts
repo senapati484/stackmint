@@ -8,7 +8,11 @@ import { getStackmintLogoFile } from './shared/logo.js';
 TEMPLATE_REGISTRY.set('nuxt', {
 
   id: 'nuxt',
-  files: (): AdapterFile[] => [
+  files: (config: StackConfig): AdapterFile[] => [
+    {
+      path: 'stackmint.config.json',
+      content: JSON.stringify(config, null, 2),
+    },
     {
       path: 'app.vue',
       content: `<template>
@@ -34,14 +38,21 @@ TEMPLATE_REGISTRY.set('nuxt', {
 `,
     },
     {
+      path: 'server/public/health.ts',
+      content: `export function getHealthPayload() {
+  return {
+    status: 'ok',
+    framework: 'nuxt',
+    timestamp: new Date().toISOString(),
+  };
+}
+`,
+    },
+    {
       path: 'server/api/health.get.ts',
-      content: `export default defineEventHandler(() => {
-    return {
-        status: 'ok',
-        framework: 'nuxt',
-        timestamp: new Date().toISOString()
-    };
-});
+      content: `import { getHealthPayload } from '../public/health';
+
+export default defineEventHandler(() => getHealthPayload());
 `,
     },
     getStackmintLogoFile(),

@@ -10,6 +10,10 @@ TEMPLATE_REGISTRY.set('react-native', {
   id: 'react-native',
   files: (config: StackConfig): AdapterFile[] => [
     {
+      path: 'stackmint.config.json',
+      content: JSON.stringify(config, null, 2),
+    },
+    {
       path: 'App.tsx',
       content: `import React, { useState } from 'react';
 import {

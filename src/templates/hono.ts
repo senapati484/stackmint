@@ -22,11 +22,28 @@ TEMPLATE_REGISTRY.set('hono', {
 
     const files: AdapterFile[] = [
       {
+        path: 'stackmint.config.json',
+        content: JSON.stringify(config, null, 2),
+      },
+      {
+        path: 'src/server/public/health.ts',
+        content: `export function getHealthPayload(runtime?: string) {
+  return {
+    status: 'ok',
+    framework: 'hono',
+    ...(runtime ? { runtime } : {}),
+    timestamp: new Date().toISOString(),
+  };
+}
+`,
+      },
+      {
         path: 'src/index.ts',
         content: config.runtime === 'bun'
           ? `import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
+import { getHealthPayload } from './server/public/health';
 
 const app = new Hono();
 
@@ -36,12 +53,7 @@ app.use('*', logger());
 const landingHTML = \`${landingHTML.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`;
 
 app.get('/', (c) => c.html(landingHTML));
-app.get('/api/health', (c) => c.json({ 
-  status: 'ok',
-  framework: 'hono',
-  runtime: 'bun',
-  timestamp: new Date().toISOString() 
-}));
+app.get('/api/health', (c) => c.json(getHealthPayload('bun')));
 
 let port = parseInt(process.env.PORT || '3000', 10);
 let server;
@@ -71,6 +83,7 @@ export default server;
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { serve } from '@hono/node-server';
+import { getHealthPayload } from './server/public/health';
 
 const app = new Hono();
 
@@ -80,11 +93,7 @@ app.use('*', logger());
 const landingHTML = \`${landingHTML.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`;
 
 app.get('/', (c) => c.html(landingHTML));
-app.get('/api/health', (c) => c.json({ 
-  status: 'ok',
-  framework: 'hono',
-  timestamp: new Date().toISOString()
-}));
+app.get('/api/health', (c) => c.json(getHealthPayload()));
 
 const startServer = (port: number) => {
   const server = serve({ fetch: app.fetch, port });

@@ -8,7 +8,7 @@ import { getStackmintLogoFile } from './shared/logo.js';
 TEMPLATE_REGISTRY.set('fastify', {
 
   id: 'fastify',
-  files: (): AdapterFile[] => {
+  files: (config: StackConfig): AdapterFile[] => {
     const landingHTML = getStaticFrontendHTML({
       framework: 'Fastify',
       runtime: 'Fastify',
@@ -22,11 +22,27 @@ TEMPLATE_REGISTRY.set('fastify', {
 
     return [
       {
+        path: 'stackmint.config.json',
+        content: JSON.stringify(config, null, 2),
+      },
+      {
+        path: 'src/server/public/health.ts',
+        content: `export function getHealthPayload() {
+  return {
+    status: 'ok',
+    framework: 'fastify',
+    timestamp: new Date().toISOString(),
+  };
+}
+`,
+      },
+      {
         path: 'src/index.ts',
         content: `import Fastify from 'fastify';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fastifyStatic from '@fastify/static';
+import { getHealthPayload } from './server/public/health';
 
 const fastify = Fastify({
   logger: false
@@ -47,11 +63,7 @@ fastify.get('/', async function(request, reply) {
 });
 
 fastify.get('/api/health', async function(request, reply) {
-  return { 
-    status: 'ok', 
-    framework: 'fastify',
-    timestamp: new Date().toISOString()
-  };
+  return getHealthPayload();
 });
 
 const start = async () => {

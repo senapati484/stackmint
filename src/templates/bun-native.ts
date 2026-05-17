@@ -8,7 +8,7 @@ import { getStackmintLogoFile } from './shared/logo.js';
 TEMPLATE_REGISTRY.set('bun-native', {
 
   id: 'bun-native',
-  files: (): AdapterFile[] => {
+  files: (config: StackConfig): AdapterFile[] => {
     const landingHTML = getStaticFrontendHTML({
       framework: 'Bun',
       runtime: 'Bun Native',
@@ -22,8 +22,26 @@ TEMPLATE_REGISTRY.set('bun-native', {
 
     return [
       {
+        path: 'stackmint.config.json',
+        content: JSON.stringify(config, null, 2),
+      },
+      {
+        path: 'src/server/public/health.ts',
+        content: `export function getHealthPayload() {
+  return {
+    status: 'ok',
+    framework: 'bun-native',
+    runtime: 'bun',
+    timestamp: new Date().toISOString(),
+  };
+}
+`,
+      },
+      {
         path: 'src/index.ts',
-        content: `const landingHTML = \`${landingHTML.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`;
+        content: `import { getHealthPayload } from './server/public/health';
+
+const landingHTML = \`${landingHTML.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`;
 
 Bun.serve({
   port: 3000,
@@ -37,12 +55,7 @@ Bun.serve({
     }
     
     if (url.pathname === '/api/health') {
-      return Response.json({
-        status: 'ok',
-        framework: 'bun-native',
-        runtime: 'bun',
-        timestamp: new Date().toISOString(),
-      });
+      return Response.json(getHealthPayload());
     }
     
     return new Response('Not Found', { status: 404 });

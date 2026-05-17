@@ -8,7 +8,22 @@ import { getStackmintLogoFile } from './shared/logo.js';
 TEMPLATE_REGISTRY.set('astro-ssr', {
 
   id: 'astro-ssr',
-  files: (): AdapterFile[] => [
+  files: (config: StackConfig): AdapterFile[] => [
+    {
+      path: 'stackmint.config.json',
+      content: JSON.stringify(config, null, 2),
+    },
+    {
+      path: 'src/server/public/health.ts',
+      content: `export function getHealthPayload() {
+  return {
+    status: 'ok',
+    framework: 'astro-ssr',
+    timestamp: new Date().toISOString(),
+  };
+}
+`,
+    },
     getStackmintLogoFile(),
     {
       path: 'src/pages/index.astro',
@@ -46,13 +61,13 @@ ${getFrontendAppStyles()}`,
     },
     {
       path: 'src/pages/api/health.ts',
-      content: `export const prerender = false;
+      content: `import { getHealthPayload } from '../../server/public/health';
+
+export const prerender = false;
 
 export async function GET() {
     return new Response(JSON.stringify({
-        status: 'ok',
-        framework: 'astro-ssr',
-        timestamp: new Date().toISOString()
+        ...getHealthPayload()
     }), {
         headers: { 'Content-Type': 'application/json' }
     });

@@ -115,6 +115,10 @@ export async function generate(
       continue;
     }
 
+    if (adapter.condition && !adapter.condition(resolved as StackConfig)) {
+      continue;
+    }
+
     const files = adapter.files(resolved as StackConfig);
     allFiles.push(...files);
 

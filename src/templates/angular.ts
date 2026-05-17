@@ -8,17 +8,16 @@ import { getStackmintLogoFile } from './shared/logo.js';
 TEMPLATE_REGISTRY.set('angular', {
 
   id: 'angular',
-  files: (): AdapterFile[] => [
+  files: (config: StackConfig): AdapterFile[] => [
+    {
+      path: 'stackmint.config.json',
+      content: JSON.stringify(config, null, 2),
+    },
     {
       path: 'src/app/app.component.ts',
       content: `import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-
-interface Signal {
-  label: string;
-  value: string;
-  detail: string;
-}
+import { getFrameworkDescription, getFrameworkLabel, getSignals, getStackMintConfig, type Signal } from '../lib/stackmint-config';
 
 @Component({
   selector: 'app-root',
@@ -29,11 +28,10 @@ interface Signal {
 })
 export class AppComponent {
   launches = signal(1);
-  signals: Signal[] = [
-    { label: 'Runtime', value: 'Angular 17+', detail: 'Standalone components ready' },
-    { label: 'Styling', value: 'Tailwind v4', detail: 'Utility-first CSS framework' },
-    { label: 'Build', value: 'SPA', detail: 'Optimized Angular output' },
-  ];
+  private readonly config = getStackMintConfig();
+  frameworkLabel = getFrameworkLabel(this.config.framework);
+  frameworkDescription = getFrameworkDescription(this.config);
+  signals: Signal[] = getSignals(this.config);
 
   incrementLaunches() {
     this.launches.set(this.launches() + 1);
@@ -61,7 +59,7 @@ export class AppComponent {
     <section class="hero-copy" aria-labelledby="hero-title">
       <span class="eyebrow"><span class="pulse"></span> Prebuilt frontend template</span>
       <h1 id="hero-title">
-        Shape your <span class="accent">Angular</span> launch surface.
+        Shape your <span class="accent">{{ frameworkLabel }}</span> launch surface.
       </h1>
       <p class="hero-lede">
         A polished stackmint canvas with the real brand artwork, responsive panels,
@@ -92,8 +90,8 @@ export class AppComponent {
       </div>
       <aside class="framework-card">
         <span>Framework section</span>
-        <strong>Angular</strong>
-        <p>Angular, TypeScript, and Tailwind v4 are configured and ready.</p>
+        <strong>{{ frameworkLabel }}</strong>
+        <p>{{ frameworkDescription }}</p>
       </aside>
 
       <div class="status-row">

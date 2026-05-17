@@ -10,15 +10,14 @@ TEMPLATE_REGISTRY.set('tanstack-start', {
   id: 'tanstack-start',
   files: (config: StackConfig): AdapterFile[] => [
     {
+      path: 'stackmint.config.json',
+      content: JSON.stringify(config, null, 2),
+    },
+    {
       path: 'app/routes/index.tsx',
       content: `import { createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
-
-const signals = [
-  { label: 'Runtime', value: 'TanStack Start', detail: 'Full-stack React framework' },
-  { label: 'Styling', value: 'Tailwind v4', detail: 'Utility-first CSS framework' },
-  { label: 'Build', value: 'SSR Ready', detail: 'Server-side rendering included' },
-];
+import { getFrameworkDescription, getFrameworkLabel, getSignals, getStackMintConfig } from '../lib/stackmint-config';
 
 export const Route = createFileRoute('/')({
   component: Home,
@@ -26,6 +25,10 @@ export const Route = createFileRoute('/')({
 
 function Home() {
   const [launches, setLaunches] = useState(1);
+  const config = getStackMintConfig();
+  const signals = getSignals(config);
+  const frameworkLabel = getFrameworkLabel(config.framework);
+  const frameworkDescription = getFrameworkDescription(config);
 
   return (
     <div className="stackmint-shell">
@@ -46,7 +49,7 @@ function Home() {
         <section className="hero-copy" aria-labelledby="hero-title">
           <span className="eyebrow"><span className="pulse" /> Prebuilt frontend template</span>
           <h1 id="hero-title">
-            Shape your <span className="accent">TanStack Start</span> launch surface.
+            Shape your <span className="accent">{frameworkLabel}</span> launch surface.
           </h1>
           <p className="hero-lede">
             A polished stackmint canvas with the real brand artwork, responsive panels,
@@ -57,8 +60,8 @@ function Home() {
             <button className="button button-primary" type="button" onClick={() => setLaunches((value) => value + 1)}>
               Launch pulse {launches}
             </button>
-            <a className="button button-secondary" href="https://stackmint-docs.vercel.app" target="_blank" rel="noreferrer">
-              Open docs
+            <a className="button button-secondary" href="/api/health">
+              Check API health
             </a>
           </div>
 
@@ -79,8 +82,8 @@ function Home() {
           </div>
           <aside className="framework-card">
             <span>Framework section</span>
-            <strong>TanStack Start</strong>
-            <p>TanStack Start with React, TypeScript, and Tailwind v4 configured.</p>
+            <strong>{frameworkLabel}</strong>
+            <p>{frameworkDescription}</p>
           </aside>
 
           <div className="status-row">
@@ -102,6 +105,33 @@ function Home() {
     </div>
   );
 }
+`,
+    },
+    {
+      path: 'app/server/public/health.ts',
+      content: `export function getHealthPayload() {
+  return {
+    status: 'ok',
+    framework: 'tanstack-start',
+    timestamp: new Date().toISOString(),
+  };
+}
+`,
+    },
+    {
+      path: 'app/routes/api/health.ts',
+      content: `import { createFileRoute } from '@tanstack/react-router';
+import { getHealthPayload } from '../../server/public/health';
+
+export const Route = createFileRoute('/api/health')({
+  server: {
+    handlers: {
+      GET: async () => {
+        return Response.json(getHealthPayload());
+      },
+    },
+  },
+});
 `,
     },
     {
@@ -181,6 +211,25 @@ body {
   .hero {
     grid-template-columns: 1fr;
   }
+}
+`,
+    },
+    {
+      path: 'app/routeTree.gen.ts',
+      content: `import { Route as RootRoute } from './root';
+import { Route as IndexRoute } from './routes/index';
+import { Route as ApiHealthRoute } from './routes/api/health';
+
+export const routeTree = RootRoute.addChildren([IndexRoute, ApiHealthRoute]);
+`,
+    },
+    {
+      path: 'app/router.tsx',
+      content: `import { createRouter as createTanStackRouter } from '@tanstack/react-router';
+import { routeTree } from './routeTree.gen';
+
+export function createRouter() {
+  return createTanStackRouter({ routeTree });
 }
 `,
     },

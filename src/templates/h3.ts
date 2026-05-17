@@ -8,7 +8,7 @@ import { getStackmintLogoFile } from './shared/logo.js';
 TEMPLATE_REGISTRY.set('h3', {
 
   id: 'h3',
-  files: (): AdapterFile[] => {
+  files: (config: StackConfig): AdapterFile[] => {
     const landingHTML = getStaticFrontendHTML({
       framework: 'H3',
       runtime: 'H3',
@@ -22,8 +22,24 @@ TEMPLATE_REGISTRY.set('h3', {
 
     return [
       {
+        path: 'stackmint.config.json',
+        content: JSON.stringify(config, null, 2),
+      },
+      {
+        path: 'src/server/public/health.ts',
+        content: `export function getHealthPayload() {
+  return {
+    status: 'ok',
+    framework: 'h3',
+    timestamp: new Date().toISOString(),
+  };
+}
+`,
+      },
+      {
         path: 'src/index.ts',
-        content: `import { createApp, createRouter, defineEventHandler, eventHandler } from 'h3';
+        content: `import { createApp, createRouter, eventHandler } from 'h3';
+import { getHealthPayload } from './server/public/health';
 
 const app = createApp();
 const router = createRouter();
@@ -35,11 +51,7 @@ router.get('/', eventHandler((event) => {
   return landingHTML;
 }));
 
-router.get('/api/health', eventHandler(() => ({
-  status: 'ok',
-  framework: 'h3',
-  timestamp: new Date().toISOString(),
-})));
+router.get('/api/health', eventHandler(() => getHealthPayload()));
 
 app.use(router);
 

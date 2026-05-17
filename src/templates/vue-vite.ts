@@ -8,18 +8,22 @@ import { getStackmintLogoFile } from './shared/logo.js';
 TEMPLATE_REGISTRY.set('vue-vite', {
 
   id: 'vue-vite',
-  files: (config) => [
+  files: (config: StackConfig): AdapterFile[] => [
+    {
+      path: 'stackmint.config.json',
+      content: JSON.stringify(config, null, 2),
+    },
     {
       path: 'src/App.vue',
       content: `<script setup lang=\"ts\">
 import { ref } from 'vue';
+import { getFrameworkDescription, getFrameworkLabel, getSignals, getStackMintConfig } from './lib/stackmint-config';
 
 const launches = ref(1);
-const signals = [
-  { label: 'Runtime', value: 'Vue 3', detail: 'Composition API ready' },
-  { label: 'Styling', value: 'Tailwind v4', detail: 'Loaded through the Vite plugin' },
-  { label: 'Build', value: 'SPA', detail: 'Optimized static output' },
-];
+const config = getStackMintConfig();
+const signals = getSignals(config);
+const frameworkLabel = getFrameworkLabel(config.framework);
+const frameworkDescription = getFrameworkDescription(config);
 </script>
 
 <template>
@@ -41,7 +45,7 @@ const signals = [
       <section class="hero-copy" aria-labelledby="hero-title">
         <span class="eyebrow"><span class="pulse"></span> Prebuilt frontend template</span>
         <h1 id="hero-title">
-          Shape your <span class="accent">Vue</span> launch surface.
+          Shape your <span class="accent">{{ frameworkLabel }}</span> launch surface.
         </h1>
         <p class="hero-lede">
           A polished stackmint canvas with the real brand artwork, responsive panels,
@@ -72,8 +76,8 @@ const signals = [
         </div>
         <aside class="framework-card">
           <span>Framework section</span>
-          <strong>Vue + Vite</strong>
-          <p>Vue, Vite, TypeScript, and Tailwind v4 are wired together.</p>
+          <strong>{{ frameworkLabel }}</strong>
+          <p>{{ frameworkDescription }}</p>
         </aside>
 
         <div class="status-row">

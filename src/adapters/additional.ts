@@ -45,6 +45,12 @@ interface StackConfig {
   [key: string]: unknown;
 }
 
+const isWebReactFramework = (framework?: string) =>
+  framework === 'nextjs' ||
+  framework === 'react-vite' ||
+  framework === 'react-router-v7' ||
+  framework === 'tanstack-start';
+
 export function registerTailwindAdapter(): void {
   const adapter: Adapter = {
     id: 'tailwind',
@@ -184,6 +190,7 @@ export function registerTanStackQueryAdapter(): void {
   const adapter: Adapter = {
     id: 'tanstack-query',
     name: 'TanStack Query',
+    condition: (config) => isWebReactFramework(config.framework),
     files: (config: StackConfig): AdapterFile[] => {
       const files: AdapterFile[] = [
         {
@@ -237,6 +244,7 @@ export function registerZustandAdapter(): void {
   const adapter: Adapter = {
     id: 'zustand',
     name: 'Zustand',
+    condition: (config) => isWebReactFramework(config.framework),
     files: (): AdapterFile[] => [
       {
         path: 'src/stores/index.ts',
@@ -647,6 +655,7 @@ function registerReactHookFormAdapter(): void {
   const adapter: Adapter = {
     id: 'react-hook-form',
     name: 'React Hook Form',
+    condition: (config) => isWebReactFramework(config.framework),
     files: (): AdapterFile[] => [
       {
         path: 'src/lib/forms.ts',
@@ -668,6 +677,7 @@ function registerTanStackFormAdapter(): void {
   const adapter: Adapter = {
     id: 'tanstack-form',
     name: 'TanStack Form',
+    condition: (config) => isWebReactFramework(config.framework),
     files: (): AdapterFile[] => [],
     dependencies: (): AdapterDependency[] => [
       { name: '@tanstack/react-form', version: '^0.22.0', dev: false },
@@ -680,6 +690,7 @@ function registerConformAdapter(): void {
   const adapter: Adapter = {
     id: 'conform',
     name: 'Conform',
+    condition: (config) => isWebReactFramework(config.framework),
     files: (): AdapterFile[] => [],
     dependencies: (): AdapterDependency[] => [
       { name: '@conform-to/react', version: '^1.1.0', dev: false },
@@ -689,7 +700,179 @@ function registerConformAdapter(): void {
   ADAPTER_REGISTRY.set('conform', adapter);
 }
 
+function registerStackmintConfigAdapter(): void {
+  const adapter: Adapter = {
+    id: 'stackmint-config',
+    name: 'stackmint Config Library',
+    files: (config: StackConfig): AdapterFile[] => {
+      const framework = config.framework || 'unknown';
+
+      const path =
+        framework === 'nuxt'
+          ? 'lib/stackmint-config.ts'
+          : framework === 'react-router-v7' || framework === 'tanstack-start'
+            ? 'app/lib/stackmint-config.ts'
+          : framework === 'react-native' || framework === 'expo'
+            ? 'stackmint-config.ts'
+            : 'src/lib/stackmint-config.ts';
+
+      const frozen = {
+        projectName: config.projectName || 'my-app',
+        framework: config.framework || 'unknown',
+        category: config.category || 'fullstack',
+        deployTarget: config.deployTarget || 'none',
+        database: config.database || 'none',
+        orm: config.orm || 'none',
+        baas: config.baas || 'none',
+        auth: config.auth || 'none',
+        apiLayer: config.apiLayer || 'none',
+        validation: config.validation || 'none',
+        styling: config.styling || 'none',
+        uiLibrary: config.uiLibrary || 'none',
+        forms: config.forms || 'none',
+        stateManagement: config.stateManagement || 'none',
+        dataFetching: config.dataFetching || 'none',
+        ai: config.ai || 'none',
+        jobs: config.jobs || 'none',
+        cache: config.cache || 'none',
+        email: config.email || 'none',
+        payments: config.payments || 'none',
+        testing: config.testing || 'none',
+        docker: !!config.docker,
+        githubActions: !!config.githubActions,
+        packageManager: config.packageManager || 'npm',
+        runtime: config.runtime || 'node',
+        monorepo: !!config.monorepo,
+        aiConfig: config.aiConfig || [],
+      };
+
+      return [
+        {
+          path,
+          content: `export interface StackMintConfig {
+  projectName: string;
+  framework: string;
+  category: string;
+  deployTarget: string;
+  database: string;
+  orm: string;
+  baas: string;
+  auth: string;
+  apiLayer: string;
+  validation: string;
+  styling: string;
+  uiLibrary: string;
+  forms: string;
+  stateManagement: string;
+  dataFetching: string;
+  ai: string;
+  jobs: string;
+  cache: string;
+  email: string;
+  payments: string;
+  testing: string;
+  docker: boolean;
+  githubActions: boolean;
+  packageManager: string;
+  runtime: string;
+  monorepo: boolean;
+  aiConfig: string[];
+}
+
+export interface Signal {
+  label: string;
+  value: string;
+  detail: string;
+}
+
+export function getStackMintConfig(): StackMintConfig {
+  return ${JSON.stringify(frozen, null, 2)} as StackMintConfig;
+}
+
+const FRAMEWORK_LABELS: Record<string, string> = {
+  nextjs: 'Next.js 15',
+  sveltekit: 'SvelteKit',
+  nuxt: 'Nuxt 3',
+  nitro: 'Nitro',
+  hono: 'Hono',
+  fastify: 'Fastify',
+  express: 'Express',
+  h3: 'H3',
+  elysia: 'Elysia',
+  'bun-native': 'Bun Native',
+  'astro-ssr': 'Astro SSR',
+  'astro-ssg': 'Astro',
+  'react-vite': 'React + Vite',
+  'vue-vite': 'Vue + Vite',
+  'svelte-vite': 'Svelte + Vite',
+  'solid-vite': 'Solid + Vite',
+  'react-router-v7': 'React Router v7',
+  'tanstack-start': 'TanStack Start',
+  angular: 'Angular',
+  analog: 'Analog',
+  nestjs: 'NestJS',
+  qwik: 'Qwik',
+  expo: 'Expo',
+  'react-native': 'React Native',
+  docusaurus: 'Docusaurus',
+  eleventy: 'Eleventy',
+  gatsby: 'Gatsby',
+  vitepress: 'VitePress',
+};
+
+export function getFrameworkLabel(id: string): string {
+  return FRAMEWORK_LABELS[id] ?? id;
+}
+
+export function getSignals(config: StackMintConfig): Signal[] {
+  const s: Signal[] = [];
+
+  s.push({
+    label: 'Framework',
+    value: getFrameworkLabel(config.framework),
+    detail: 'Scaffolded by stackmint',
+  });
+
+  if (config.database !== 'none') {
+    s.push({ label: 'Database', value: config.database, detail: 'Primary persistence' });
+  } else if (config.baas !== 'none') {
+    s.push({ label: 'Backend', value: config.baas, detail: 'Backend-as-a-Service' });
+  }
+
+  if (config.orm !== 'none') s.push({ label: 'ORM', value: config.orm, detail: 'Database access' });
+  if (config.auth !== 'none') s.push({ label: 'Auth', value: config.auth, detail: 'Identity & security' });
+  if (config.apiLayer !== 'none') s.push({ label: 'API', value: config.apiLayer, detail: 'Data communication' });
+  if (config.styling !== 'none') s.push({ label: 'Styling', value: config.styling, detail: 'Visual layer' });
+  if (config.uiLibrary !== 'none') s.push({ label: 'UI', value: config.uiLibrary, detail: 'Component library' });
+  if (config.ai !== 'none') s.push({ label: 'AI', value: config.ai, detail: 'Intelligence' });
+  if (config.deployTarget !== 'none') s.push({ label: 'Deploy', value: config.deployTarget, detail: 'Cloud target' });
+
+  return s;
+}
+
+export function getFrameworkDescription(config: StackMintConfig): string {
+  const parts: string[] = [];
+  if (config.database !== 'none') parts.push('database');
+  if (config.auth !== 'none') parts.push('auth');
+  if (config.apiLayer !== 'none') parts.push('API');
+  if (config.baas !== 'none' && config.database === 'none') parts.push('BaaS');
+
+  const base = getFrameworkLabel(config.framework);
+  return parts.length > 0 ? \`\${base} with \${parts.join(', ')}.\` : \`\${base} — ready for production.\`;
+}
+`,
+        },
+      ];
+    },
+    dependencies: (): AdapterDependency[] => [],
+    condition: () => true,
+  };
+
+  ADAPTER_REGISTRY.set('stackmint-config', adapter);
+}
+
 export function initAdditionalAdapters(): void {
+  registerStackmintConfigAdapter();
   registerTailwindAdapter();
   registerShadcnAdapter();
   registerTanStackQueryAdapter();

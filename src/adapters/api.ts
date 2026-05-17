@@ -2,15 +2,21 @@ import { registerAdapter } from './index.js';
 import type { Adapter } from './index.js';
 
 export function initApiAdapters(): void {
+  const isTrpcSupported = (config: { framework?: string }) => config.framework === 'nextjs';
+
   const trpcAdapter: Adapter = {
     id: 'trpc',
     name: 'tRPC',
-    dependencies: () => [
-      { name: '@trpc/client', version: '^11.0.0', dev: false },
-      { name: '@trpc/server', version: '^11.0.0', dev: false },
-      { name: '@trpc/react-query', version: '^11.0.0', dev: false },
-      { name: '@tanstack/react-query', version: '^5.61.0', dev: false },
-    ],
+    condition: (config) => isTrpcSupported(config),
+    dependencies: (config) =>
+      isTrpcSupported(config)
+        ? [
+            { name: '@trpc/client', version: '^11.0.0', dev: false },
+            { name: '@trpc/server', version: '^11.0.0', dev: false },
+            { name: '@trpc/react-query', version: '^11.0.0', dev: false },
+            { name: '@tanstack/react-query', version: '^5.61.0', dev: false },
+          ]
+        : [],
     files: (config) => {
       if (config.framework === 'nextjs') {
         return [

@@ -8,7 +8,11 @@ import { getStackmintLogoFile } from './shared/logo.js';
 TEMPLATE_REGISTRY.set('astro-ssg', {
 
   id: 'astro-ssg',
-  files: (): AdapterFile[] => [
+  files: (config: StackConfig): AdapterFile[] => [
+    {
+      path: 'stackmint.config.json',
+      content: JSON.stringify(config, null, 2),
+    },
     getStackmintLogoFile(),
     {
       path: 'src/pages/index.astro',

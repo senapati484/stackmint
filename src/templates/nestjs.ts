@@ -8,14 +8,31 @@ import { getStackmintLogoFile } from './shared/logo.js';
 TEMPLATE_REGISTRY.set('nestjs', {
 
   id: 'nestjs',
-  files: (): AdapterFile[] => [
+  files: (config: StackConfig): AdapterFile[] => [
+    {
+      path: 'stackmint.config.json',
+      content: JSON.stringify(config, null, 2),
+    },
+    {
+      path: 'src/server/public/health.ts',
+      content: `export function getHealthPayload() {
+  return {
+    status: 'ok',
+    framework: 'nestjs',
+    timestamp: new Date().toISOString(),
+  };
+}
+`,
+    },
     {
       path: 'src/main.ts',
       content: `import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { join } from 'path';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.useStaticAssets(join(__dirname, '..', 'public'));
   await app.listen(3000, () => {
     console.log(\`\\n✨ Server running at http://localhost:3000\\n\`);
   });
@@ -39,25 +56,23 @@ export class AppModule {}
     },
     {
       path: 'src/app.controller.ts',
-      content: `import { Controller, Get } from '@nestjs/common';
+      content: `import { Controller, Get, Header } from '@nestjs/common';
 import { AppService } from './app.service';
+import { getHealthPayload } from './server/public/health';
 
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Get()
-  getHello(): string {
-    return this.appService.getHello();
+  @Header('content-type', 'text/html; charset=utf-8')
+  getIndex(): string {
+    return this.appService.getIndexHTML();
   }
 
-  @Get('health')
+  @Get('api/health')
   getHealth() {
-    return {
-      status: 'ok',
-      timestamp: new Date().toISOString(),
-      framework: 'nestjs',
-    };
+    return getHealthPayload();
   }
 }
 `,
@@ -68,12 +83,26 @@ export class AppController {
 
 @Injectable()
 export class AppService {
-  getHello(): string {
-    return 'Hello from NestJS! Built with stackmint.';
+  getIndexHTML(): string {
+    return \`${getStaticFrontendHTML({
+      framework: 'NestJS',
+      runtime: 'NestJS',
+      styling: 'HTML/CSS',
+      build: 'API Server',
+      detail: 'Production-ready NestJS starter with a consistent stackmint shell.',
+      editPath: 'src/app.controller.ts',
+      actionHref: '/api/health',
+      actionLabel: 'Check API Health',
+    }).replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`;
   }
 }
 `,
     },
+    {
+      path: 'public/.gitkeep',
+      content: '',
+    },
+    getStackmintLogoFile(),
     {
       path: 'nest-cli.json',
       content: JSON.stringify({

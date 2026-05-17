@@ -10,6 +10,10 @@ TEMPLATE_REGISTRY.set('expo', {
   id: 'expo',
   files: (config: StackConfig): AdapterFile[] => [
     {
+      path: 'stackmint.config.json',
+      content: JSON.stringify(config, null, 2),
+    },
+    {
       path: 'app/(tabs)/index.tsx',
       content: `import { StyleSheet, Text, View } from 'react-native';
 

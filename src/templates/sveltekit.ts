@@ -8,7 +8,11 @@ import { getStackmintLogoFile } from './shared/logo.js';
 TEMPLATE_REGISTRY.set('sveltekit', {
 
   id: 'sveltekit',
-  files: (): AdapterFile[] => [
+  files: (config: StackConfig): AdapterFile[] => [
+    {
+      path: 'stackmint.config.json',
+      content: JSON.stringify(config, null, 2),
+    },
     {
       path: 'src/routes/+layout.svelte',
       content: `<script lang="ts">
@@ -41,7 +45,7 @@ TEMPLATE_REGISTRY.set('sveltekit', {
 `,
     },
     {
-      path: 'src/routes/api/health/+server.ts',
+      path: 'src/routes/(public)/api/health/+server.ts',
       content: `import { json } from '@sveltejs/kit';
 
 export function GET() {

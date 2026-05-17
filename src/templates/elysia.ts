@@ -8,7 +8,7 @@ import { getStackmintLogoFile } from './shared/logo.js';
 TEMPLATE_REGISTRY.set('elysia', {
 
   id: 'elysia',
-  files: (): AdapterFile[] => {
+  files: (config: StackConfig): AdapterFile[] => {
     const landingHTML = getStaticFrontendHTML({
       framework: 'Elysia',
       runtime: 'Elysia + Bun',
@@ -16,26 +16,38 @@ TEMPLATE_REGISTRY.set('elysia', {
       build: 'API Server',
       detail: 'Blazingly fast Bun web framework',
       editPath: 'src/index.ts',
-      actionHref: '/health',
+      actionHref: '/api/health',
       actionLabel: 'Check API Health',
     });
 
     return [
       {
+        path: 'stackmint.config.json',
+        content: JSON.stringify(config, null, 2),
+      },
+      {
+        path: 'src/server/public/health.ts',
+        content: `export function getHealthPayload() {
+  return {
+    status: 'ok',
+    framework: 'elysia',
+    timestamp: new Date().toISOString(),
+  };
+}
+`,
+      },
+      {
         path: 'src/index.ts',
         content: `import { Elysia } from "elysia";
 import { staticPlugin } from "@elysiajs/static";
+import { getHealthPayload } from "./server/public/health";
 
 const app = new Elysia()
   .use(staticPlugin({
     assets: 'public'
   }))
   .get("/", () => \`${landingHTML.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)
-  .get("/health", () => ({ 
-    status: "ok", 
-    framework: "elysia",
-    timestamp: new Date().toISOString()
-  }))
+  .get("/api/health", () => getHealthPayload())
   .listen(3000);
 
 console.log(\`\\n✨ Server running at http://localhost:\${app.server?.port}\\n\`);

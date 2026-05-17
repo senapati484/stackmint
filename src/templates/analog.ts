@@ -8,7 +8,11 @@ import { getStackmintLogoFile } from './shared/logo.js';
 TEMPLATE_REGISTRY.set('analog', {
 
   id: 'analog',
-  files: (): AdapterFile[] => [
+  files: (config: StackConfig): AdapterFile[] => [
+    {
+      path: 'stackmint.config.json',
+      content: JSON.stringify(config, null, 2),
+    },
     {
       path: 'src/main.ts',
       content: `import { bootstrapApplication } from '@angular/platform-browser';
@@ -31,10 +35,13 @@ export default ssr(bootstrap);
     {
       path: 'src/app/app.component.ts',
       content: `import { Component } from '@angular/core';
+import { NgFor } from '@angular/common';
+import { getFrameworkDescription, getFrameworkLabel, getSignals, getStackMintConfig } from '../lib/stackmint-config';
 
 @Component({
   selector: 'app-root',
   standalone: true,
+  imports: [NgFor],
   template: \`<div class="stackmint-shell">
   <header class="topbar">
     <a class="brand-mark" href="https://stackmint-docs.vercel.app" target="_blank" rel="noreferrer">
@@ -53,7 +60,7 @@ export default ssr(bootstrap);
     <section class="hero-copy" aria-labelledby="hero-title">
       <span class="eyebrow"><span class="pulse"></span> Prebuilt frontend template</span>
       <h1 id="hero-title">
-        Shape your <span class="accent">Analog</span> launch surface.
+        Shape your <span class="accent">{{ frameworkLabel }}</span> launch surface.
       </h1>
       <p class="hero-lede">
         A polished stackmint canvas with real brand artwork, responsive panels,
@@ -64,26 +71,16 @@ export default ssr(bootstrap);
         <button class="button button-primary" (click)="launches = launches + 1">
           Launch pulse {{ launches }}
         </button>
-        <a class="button button-secondary" href="https://stackmint-docs.vercel.app" target="_blank" rel="noreferrer">
-          Open docs
+        <a class="button button-secondary" href="/api/health">
+          Check API health
         </a>
       </div>
 
       <div class="signal-grid" aria-label="Template highlights">
-        <article class="signal-card">
-          <span>Runtime</span>
-          <strong>Analog</strong>
-          <p>Angular + Vite full-stack framework</p>
-        </article>
-        <article class="signal-card">
-          <span>Styling</span>
-          <strong>Tailwind v4</strong>
-          <p>Utility-first CSS framework</p>
-        </article>
-        <article class="signal-card">
-          <span>Build</span>
-          <strong>SSR Ready</strong>
-          <p>Server-side rendering included</p>
+        <article class="signal-card" *ngFor="let signal of signals">
+          <span>{{ signal.label }}</span>
+          <strong>{{ signal.value }}</strong>
+          <p>{{ signal.detail }}</p>
         </article>
       </div>
     </section>
@@ -94,8 +91,8 @@ export default ssr(bootstrap);
       </div>
       <aside class="framework-card">
         <span>Framework</span>
-        <strong>Analog</strong>
-        <p>Angular full-stack with Vite and SSR</p>
+        <strong>{{ frameworkLabel }}</strong>
+        <p>{{ frameworkDescription }}</p>
       </aside>
 
       <div class="status-row">
@@ -211,7 +208,30 @@ export default ssr(bootstrap);
 })
 export class AppComponent {
   launches = 1;
+  private readonly config = getStackMintConfig();
+  frameworkLabel = getFrameworkLabel(this.config.framework);
+  frameworkDescription = getFrameworkDescription(this.config);
+  signals = getSignals(this.config);
 }
+`,
+    },
+    {
+      path: 'src/server/public/health.ts',
+      content: `export function getHealthPayload() {
+  return {
+    status: 'ok',
+    framework: 'analog',
+    timestamp: new Date().toISOString(),
+  };
+}
+`,
+    },
+    {
+      path: 'src/server/routes/api/health.ts',
+      content: `import { defineEventHandler } from 'h3';
+import { getHealthPayload } from '../../public/health';
+
+export default defineEventHandler(() => getHealthPayload());
 `,
     },
     {

@@ -8,7 +8,11 @@ import { getStackmintLogoFile } from './shared/logo.js';
 TEMPLATE_REGISTRY.set('solid-vite', {
 
   id: 'solid-vite',
-  files: (): AdapterFile[] => [
+  files: (config: StackConfig): AdapterFile[] => [
+    {
+      path: 'stackmint.config.json',
+      content: JSON.stringify(config, null, 2),
+    },
     {
       path: 'src/main.tsx',
       content: `import { render } from 'solid-js/web';
@@ -25,12 +29,12 @@ if (root) {
     {
       path: 'src/App.tsx',
       content: `import { For, createSignal } from 'solid-js';
+import { getFrameworkDescription, getFrameworkLabel, getSignals, getStackMintConfig } from './lib/stackmint-config';
 
-const signals = [
-  { label: 'Runtime', value: 'Solid', detail: 'Fine-grained reactivity ready' },
-  { label: 'Styling', value: 'Tailwind v4', detail: 'Loaded through the Vite plugin' },
-  { label: 'Build', value: 'SPA', detail: 'Optimized static output' },
-];
+const config = getStackMintConfig();
+const signals = getSignals(config);
+const frameworkLabel = getFrameworkLabel(config.framework);
+const frameworkDescription = getFrameworkDescription(config);
 
 function App() {
   const [launches, setLaunches] = createSignal(1);
@@ -54,7 +58,7 @@ function App() {
         <section class="hero-copy" aria-labelledby="hero-title">
           <span class="eyebrow"><span class="pulse" /> Prebuilt frontend template</span>
           <h1 id="hero-title">
-            Shape your <span class="accent">Solid</span> launch surface.
+            Shape your <span class="accent">{frameworkLabel}</span> launch surface.
           </h1>
           <p class="hero-lede">
             A polished stackmint canvas with the real brand artwork, responsive panels,
@@ -89,8 +93,8 @@ function App() {
           </div>
           <aside class="framework-card">
             <span>Framework section</span>
-            <strong>Solid + Vite</strong>
-            <p>Solid, Vite, TypeScript, and Tailwind v4 are wired together.</p>
+            <strong>{frameworkLabel}</strong>
+            <p>{frameworkDescription}</p>
           </aside>
 
           <div class="status-row">

@@ -26,6 +26,21 @@ TEMPLATE_REGISTRY.set('nitro', {
 
     return [
       {
+        path: 'stackmint.config.json',
+        content: JSON.stringify(config, null, 2),
+      },
+      {
+        path: 'server/public/health.ts',
+        content: `export function getHealthPayload() {
+  return {
+    status: 'ok',
+    framework: 'nitro',
+    timestamp: new Date().toISOString(),
+  };
+}
+`,
+      },
+      {
         path: 'nitro.config.ts',
         content: `export default defineNitroConfig({
     preset: '${preset}',
@@ -46,13 +61,9 @@ export default defineEventHandler((event) => {
       },
       {
         path: 'routes/api/health.ts',
-        content: `export default defineEventHandler(() => {
-    return {
-        status: 'ok',
-        framework: 'nitro',
-        timestamp: new Date().toISOString()
-    };
-});
+        content: `import { getHealthPayload } from '../../server/public/health';
+
+export default defineEventHandler(() => getHealthPayload());
 `,
       },
       {

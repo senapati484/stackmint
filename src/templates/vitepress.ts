@@ -10,6 +10,10 @@ TEMPLATE_REGISTRY.set('vitepress', {
   id: 'vitepress',
   files: (config: StackConfig): AdapterFile[] => [
     {
+      path: 'stackmint.config.json',
+      content: JSON.stringify(config, null, 2),
+    },
+    {
       path: 'docs/.vitepress/config.ts',
       content: `import { defineConfig } from 'vitepress';
 
