@@ -405,12 +405,12 @@ export function getFrameworkDescription(config: StackMintConfig): string {
     ? \`Next.js 15 with \${parts.join(', ')}.\`
     : 'Next.js 15 — App Router, TypeScript, ready to build.';
 }
-\`;
+`;
 }
 
 // ─── src/types/index.ts ─────────────────────────────────────────────────────
 
-const TYPES_FILE = \`// Shared TypeScript types — extend as your project grows.
+const TYPES_FILE = `// Shared TypeScript types — extend as your project grows.
 
 export type ID = string;
 
@@ -432,11 +432,11 @@ export interface User {
   createdAt: Date;
   updatedAt: Date;
 }
-\`;
+`;
 
 // ─── src/app/page.tsx ────────────────────────────────────────────────────────
 
-const PAGE_CONTENT = \`'use client';
+const PAGE_CONTENT = `'use client';
 
 import { useState } from 'react';
 import {
@@ -537,18 +537,18 @@ export default function HomePage() {
     </div>
   );
 }
-\`;
+`;
 
 // ─── globals.css — add responsive signal-grid override ───────────────────────
 
 function buildGlobalsCss(): string {
-  return \`\${getFrontendGlobalStyles()}
-\${getFrontendAppStyles()}
+  return `${getFrontendGlobalStyles()}
+${getFrontendAppStyles()}
 /* Signal grid: auto-fill so the cards reflow gracefully for any number of integrations */
 .signal-grid {
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
 }
-\`;
+`;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -591,31 +591,31 @@ TEMPLATE_REGISTRY.set('nextjs', {
       { path: 'src/app/globals.css', content: buildGlobalsCss() },
       {
         path: 'src/app/api/health/route.ts',
-        content: \`import { NextResponse } from 'next/server';
+        content: `import { NextResponse } from 'next/server';
 
 export async function GET() {
   return NextResponse.json({
     status: 'ok',
     framework: 'nextjs',
-    app: '\${appName}',
+    app: '${appName}',
     timestamp: new Date().toISOString(),
   });
 }
-\`,
+`,
       },
 
       // ── Lib ──────────────────────────────────────────────────────────────
       { path: 'src/lib/stackmint-config.ts', content: buildStackmintConfigLib(config) },
       {
         path: 'src/lib/utils.ts',
-        content: \`import { clsx, type ClassValue } from 'clsx';
+        content: `import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
 /** Merge Tailwind classes safely. Works great with shadcn/ui. */
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
-\`,
+`,
       },
 
       // ── Types ────────────────────────────────────────────────────────────
@@ -661,12 +661,12 @@ export function cn(...inputs: ClassValue[]) {
       // ── PostCSS (Tailwind v4) ─────────────────────────────────────────────
       {
         path: 'postcss.config.mjs',
-        content: \`export default {
+        content: `export default {
   plugins: {
     '@tailwindcss/postcss': {},
   },
 };
-\`,
+`,
       },
     ];
 
@@ -682,7 +682,7 @@ export function cn(...inputs: ClassValue[]) {
       files.push(
         {
           path: 'auth.ts',
-          content: \`import NextAuth from 'next-auth';
+          content: `import NextAuth from 'next-auth';
 import GitHub from 'next-auth/providers/github';
 import Google from 'next-auth/providers/google';
 // Add more providers: https://authjs.dev/getting-started/providers
@@ -696,14 +696,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
   },
 });
-\`,
+`,
         },
         {
           path: 'src/app/api/auth/[...nextauth]/route.ts',
-          content: \`import { handlers } from '@/../../auth';
+          content: `import { handlers } from '@/../../auth';
 
 export const { GET, POST } = handlers;
-\`,
+`,
         },
       );
     }
@@ -716,7 +716,7 @@ export const { GET, POST } = handlers;
         {
           path: 'vitest.config.ts',
           overwrite: true,
-          content: \`import { defineConfig } from 'vitest/config';
+          content: `import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
@@ -734,21 +734,21 @@ export default defineConfig({
     },
   },
 });
-\`,
+`,
         },
         {
           path: 'tests/setup.ts',
           overwrite: true,
-          content: \`import '@testing-library/jest-dom';
+          content: `import '@testing-library/jest-dom';
 import { cleanup } from '@testing-library/react';
 import { afterEach } from 'vitest';
 
 afterEach(() => cleanup());
-\`,
+`,
         },
         {
           path: 'tests/home.test.tsx',
-          content: \`import { render, screen } from '@testing-library/react';
+          content: `import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import HomePage from '@/app/page';
 
@@ -760,7 +760,7 @@ describe('HomePage', () => {
     ).toBeInTheDocument();
   });
 });
-\`,
+`,
         },
       );
     }
@@ -771,7 +771,7 @@ describe('HomePage', () => {
         {
           path: 'playwright.config.ts',
           overwrite: true,
-          content: \`import { defineConfig, devices } from '@playwright/test';
+          content: `import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -794,11 +794,11 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
   },
 });
-\`,
+`,
         },
         {
           path: 'tests/e2e/home.spec.ts',
-          content: \`import { test, expect } from '@playwright/test';
+          content: `import { test, expect } from '@playwright/test';
 
 test('homepage has launch button', async ({ page }) => {
   await page.goto('/');
@@ -811,7 +811,7 @@ test('health route returns ok', async ({ page }) => {
   const json: unknown = await response?.json();
   expect((json as { status: string }).status).toBe('ok');
 });
-\`,
+`,
         },
       );
     }
@@ -824,7 +824,7 @@ test('health route returns ok', async ({ page }) => {
         {
           path: 'Dockerfile',
           overwrite: true,
-          content: \`# syntax=docker/dockerfile:1
+          content: `# syntax=docker/dockerfile:1
 FROM node:20-alpine AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
@@ -850,11 +850,11 @@ USER nextjs
 EXPOSE 3000
 ENV PORT=3000 HOSTNAME="0.0.0.0"
 CMD ["node", "server.js"]
-\`,
+`,
         },
         {
           path: '.dockerignore',
-          content: \`node_modules\\n.next\\n.env\\n.env.local\\n.env.*\\ndist\\ncoverage\\n.git\\n*.log\\n\`,
+          content: `node_modules\\n.next\\n.env\\n.env.local\\n.env.*\\ndist\\ncoverage\\n.git\\n*.log\\n`,
         },
       );
     }
@@ -871,7 +871,7 @@ CMD ["node", "server.js"]
 
       files.push({
         path: '.github/workflows/nextjs.yml',
-        content: \`name: Next.js CI
+        content: `name: Next.js CI
 
 on:
   push:
@@ -889,24 +889,24 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: '\${pm === 'bun' ? 'npm' : pm}'
+          cache: '${pm === 'bun' ? 'npm' : pm}'
 
       - name: Install dependencies
-        run: \${installCmd}
+        run: ${installCmd}
 
       - name: Type-check
         run: npx tsc --noEmit
 
       - name: Build
-        run: \${buildCmd}
+        run: ${buildCmd}
         env:
           NEXT_TELEMETRY_DISABLED: 1
-\${
+${
   config.testing === 'vitest' || config.testing === 'vitest+playwright'
-    ? \`\\n      - name: Unit tests\\n        run: \${testCmd}\`
+    ? `\\n      - name: Unit tests\\n        run: ${testCmd}`
     : ''
 }
-\`,
+`,
       });
     }
 
