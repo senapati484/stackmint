@@ -36,26 +36,69 @@ interface StackConfig {
   [key: string]: unknown;
 }
 
+function getFrameworkDbPath(framework?: string): { dbPath: string; schemaPath: string; configPath: string; migrationsPath: string } {
+  switch (framework) {
+    case 'sveltekit':
+      return {
+        dbPath: 'src/lib/server/db/index.ts',
+        schemaPath: 'src/lib/server/db/schema.ts',
+        configPath: 'src/lib/server/db/drizzle.config.ts',
+        migrationsPath: 'src/lib/server/db/migrations',
+      };
+    case 'nuxt':
+      return {
+        dbPath: 'server/db/index.ts',
+        schemaPath: 'server/db/schema.ts',
+        configPath: 'server/db/drizzle.config.ts',
+        migrationsPath: 'server/db/migrations',
+      };
+    case 'astro-ssr':
+    case 'astro-ssg':
+      return {
+        dbPath: 'src/db/index.ts',
+        schemaPath: 'src/db/schema.ts',
+        configPath: 'drizzle.config.ts',
+        migrationsPath: 'src/db/migrations',
+      };
+    case 'react-router-v7':
+    case 'tanstack-start':
+      return {
+        dbPath: 'app/lib/db.ts',
+        schemaPath: 'app/db/schema.ts',
+        configPath: 'drizzle.config.ts',
+        migrationsPath: 'app/db/migrations',
+      };
+    default:
+      return {
+        dbPath: 'src/lib/db.ts',
+        schemaPath: 'src/db/schema/index.ts',
+        configPath: 'drizzle.config.ts',
+        migrationsPath: 'src/db/migrations',
+      };
+  }
+}
+
 export function registerDrizzleAdapter(): void {
   const adapter: Adapter = {
     id: 'drizzle',
     name: 'Drizzle ORM',
     files: (config: StackConfig): AdapterFile[] => {
+      const paths = getFrameworkDbPath(config.framework);
       const dbFiles: AdapterFile[] = [
         {
-          path: 'src/lib/db.ts',
+          path: paths.dbPath,
           content: getDrizzleDbContent(config),
         },
         {
-          path: 'src/db/schema/index.ts',
+          path: paths.schemaPath,
           content: getDrizzleSchemaContent(config),
         },
         {
-          path: 'drizzle.config.ts',
-          content: getDrizzleConfigContent(config),
+          path: paths.configPath,
+          content: getDrizzleConfigContent(config, paths),
         },
         {
-          path: 'src/db/migrations/.gitkeep',
+          path: paths.migrationsPath + '/.gitkeep',
           content: '',
         },
       ];
@@ -99,39 +142,116 @@ export function registerDrizzleAdapter(): void {
 }
 
 function getDrizzleDbContent(config: StackConfig): string {
+  const framework = config.framework;
   let importStatement = '';
   let clientInit = '';
+  let envImport = '';
+
+  // Framework-specific env handling
+  if (framework === 'sveltekit') {
+    envImport = "import { DATABASE_URL } from '$env/static/private';";
+  } else if (framework?.startsWith('astro')) {
+    envImport = "// Using import.meta.env for Astro";
+  } else if (framework === 'nuxt') {
+    envImport = "// Using runtimeConfig for Nuxt";
+  } else {
+    envImport = "// Using process.env";
+  }
+
+  const getEnvVar = (framework?: string): string => {
+    if (framework === 'sveltekit') return 'DATABASE_URL';
+    if (framework?.startsWith('astro')) return 'import.meta.env.DATABASE_URL';
+    if (framework === 'nuxt') return 'useRuntimeConfig().db.url';
+    return 'process.env.DATABASE_URL';
+  };
+
+  const envVar = getEnvVar(framework);
 
   switch (config.database) {
     case 'postgres':
-      importStatement = "import { drizzle } from 'drizzle-orm/node-postgres';";
-      clientInit = "import pg from 'pg';\nconst pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });\nexport const db = drizzle(pool);";
+      if (framework === 'sveltekit') {
+        importStatement = "import { drizzle } from 'drizzle-orm/node-postgres';";
+        clientInit = "import pg from 'pg';\nconst pool = new pg.Pool({ connectionString: DATABASE_URL });\nexport const db = drizzle(pool);";
+      } else if (framework?.startsWith('astro')) {
+        importStatement = "import { drizzle } from 'drizzle-orm/postgres-js';\nimport postgres from 'postgres';";
+        clientInit = "const client = postgres(import.meta.env.DATABASE_URL!);\nexport const db = drizzle(client);";
+      } else {
+        importStatement = "import { drizzle } from 'drizzle-orm/node-postgres';";
+        clientInit = "import pg from 'pg';\nconst pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });\nexport const db = drizzle(pool);";
+      }
       break;
     case 'mysql':
       importStatement = "import { drizzle } from 'drizzle-orm/mysql2';";
-      clientInit = "import mysql from 'mysql2/promise';\nconst pool = mysql.createPool(process.env.DATABASE_URL!);\nexport const db = drizzle(pool);";
+      if (framework === 'sveltekit') {
+        clientInit = "import mysql from 'mysql2/promise';\nconst pool = mysql.createPool(DATABASE_URL);\nexport const db = drizzle(pool);";
+      } else {
+        clientInit = "import mysql from 'mysql2/promise';\nconst pool = mysql.createPool(process.env.DATABASE_URL!);\nexport const db = drizzle(pool);";
+      }
       break;
     case 'sqlite':
       importStatement = "import { drizzle } from 'drizzle-orm/better-sqlite3';";
-      clientInit = "import Database from 'better-sqlite3';\nconst dbClient = new Database(process.env.DATABASE_URL!);\nexport const db = drizzle(dbClient);";
+      if (framework === 'sveltekit') {
+        clientInit = "import Database from 'better-sqlite3';\nconst dbClient = new Database(DATABASE_URL);\nexport const db = drizzle(dbClient);";
+      } else {
+        clientInit = "import Database from 'better-sqlite3';\nconst dbClient = new Database(process.env.DATABASE_URL!);\nexport const db = drizzle(dbClient);";
+      }
       break;
     case 'turso':
       importStatement = "import { drizzle } from 'drizzle-orm/libsql';";
-      clientInit = "import { createClient } from '@libsql/client';\nconst dbClient = createClient({ url: process.env.DATABASE_URL! });\nexport const db = drizzle(dbClient);";
+      if (framework === 'sveltekit') {
+        clientInit = "import { createClient } from '@libsql/client';\nconst dbClient = createClient({ url: DATABASE_URL });\nexport const db = drizzle(dbClient);";
+      } else {
+        clientInit = "import { createClient } from '@libsql/client';\nconst dbClient = createClient({ url: process.env.DATABASE_URL! });\nexport const db = drizzle(dbClient);";
+      }
       break;
     case 'neon':
       importStatement = "import { drizzle } from 'drizzle-orm/neon-http';";
-      clientInit = "import { neon } from '@neondatabase/serverless';\nconst sql = neon(process.env.DATABASE_URL!);\nexport const db = drizzle(sql);";
+      const neonEnv = framework?.startsWith('astro') ? 'import.meta.env.DATABASE_URL' : 
+                      framework === 'sveltekit' ? 'DATABASE_URL' : 'process.env.DATABASE_URL';
+      clientInit = `import { neon } from '@neondatabase/serverless';\nconst sql = neon(${neonEnv}!);\nexport const db = drizzle(sql);`;
       break;
     default:
       importStatement = "import { drizzle } from 'drizzle-orm/node-postgres';";
       clientInit = "import pg from 'pg';\nconst pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });\nexport const db = drizzle(pool);";
   }
 
-  return `${importStatement}\n${clientInit}\n`;
+  return `${importStatement}\n${envImport ? envImport + '\n' : ''}${clientInit}\n`;
 }
 
-function getDrizzleSchemaContent(_config: StackConfig): string {
+function getDrizzleSchemaContent(config: StackConfig): string {
+  const { database, framework } = config;
+  
+  // SQLite schema
+  if (database === 'sqlite' || database === 'turso') {
+    return `import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+
+export const users = sqliteTable('users', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  name: text('name').notNull(),
+  email: text('email').notNull().unique(),
+  createdAt: text('created_at').default(new Date().toISOString()),
+});
+
+// Add your schema definitions here
+`;
+  }
+  
+  // MySQL schema
+  if (database === 'mysql') {
+    return `import { mysqlTable, serial, text, timestamp } from 'drizzle-orm/mysql-core';
+
+export const users = mysqlTable('users', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  email: text('email').notNull().unique(),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+// Add your schema definitions here
+`;
+  }
+  
+  // PostgreSQL schema (default)
   return `import { pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core';
 
 export const users = pgTable('users', {
@@ -145,7 +265,7 @@ export const users = pgTable('users', {
 `;
 }
 
-function getDrizzleConfigContent(config: StackConfig): string {
+function getDrizzleConfigContent(config: StackConfig, paths: { schemaPath: string; migrationsPath: string }): string {
   let dialect = 'postgresql';
   if (config.database === 'mysql') dialect = 'mysql';
   else if (config.database === 'sqlite' || config.database === 'turso') dialect = 'sqlite';
@@ -153,8 +273,8 @@ function getDrizzleConfigContent(config: StackConfig): string {
   return `import { defineConfig } from 'drizzle-kit';
 
 export default defineConfig({
-  schema: './src/db/schema/index.ts',
-  out: './src/db/migrations',
+  schema: './${paths.schemaPath}',
+  out: './${paths.migrationsPath}',
   dialect: '${dialect}',
   dbCredentials: {
     url: process.env.DATABASE_URL!,
