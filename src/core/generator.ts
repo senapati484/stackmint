@@ -76,7 +76,7 @@ export async function generate(
 
   log.step('Building adapter list...');
   const adapterIds = buildAdapterList(resolved as StackConfig);
-  
+
   // Auto-activate framework adapters based on condition
   for (const [adapterId, adapter] of ADAPTER_REGISTRY) {
     if (adapter.condition && adapter.condition(resolved as StackConfig)) {
@@ -85,7 +85,7 @@ export async function generate(
       }
     }
   }
-  
+
   log.info(`Active adapters: ${adapterIds.length}`);
   if (resolved.framework) {
     log.info(`Framework: ${resolved.framework}`);

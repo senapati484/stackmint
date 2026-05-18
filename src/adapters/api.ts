@@ -11,11 +11,11 @@ export function initApiAdapters(): void {
     dependencies: (config) =>
       isTrpcSupported(config)
         ? [
-            { name: '@trpc/client', version: '^11.0.0', dev: false },
-            { name: '@trpc/server', version: '^11.0.0', dev: false },
-            { name: '@trpc/react-query', version: '^11.0.0', dev: false },
-            { name: '@tanstack/react-query', version: '^5.61.0', dev: false },
-          ]
+          { name: '@trpc/client', version: '^11.0.0', dev: false },
+          { name: '@trpc/server', version: '^11.0.0', dev: false },
+          { name: '@trpc/react-query', version: '^11.0.0', dev: false },
+          { name: '@tanstack/react-query', version: '^5.61.0', dev: false },
+        ]
         : [],
     files: (config) => {
       if (config.framework === 'nextjs') {

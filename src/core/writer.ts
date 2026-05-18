@@ -12,8 +12,11 @@ import { validateGeneratedProject } from './validator.js';
 async function getNpmMajorVersion(): Promise<number> {
   try {
     const { stdout } = await execa('npm', ['--version'], { stdio: 'pipe' });
-    const major = parseInt(stdout.trim().split('.')[0], 10);
-    return isNaN(major) ? 0 : major;
+    const match = stdout.match(/(\d+)\.\d+\.\d+/);
+    if (match && match[1]) {
+      return parseInt(match[1], 10);
+    }
+    return 0;
   } catch {
     return 0;
   }

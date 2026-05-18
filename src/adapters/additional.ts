@@ -172,13 +172,13 @@ export function registerShadcnAdapter(): void {
         { name: 'tailwind-merge', version: '^2.0.0' },
         { name: 'class-variance-authority', version: '^0.7.0' },
       ];
-      
+
       // Only add React-specific dependencies for React frameworks
       const framework = config.framework || '';
       if (framework.includes('react') || framework.includes('next')) {
         deps.push({ name: '@radix-ui/react-slot', version: '^1.2.0' });
       }
-      
+
       return deps;
     },
   };
@@ -566,16 +566,16 @@ ${cleanupCall}});
         { name: 'vitest', version: '^4.1.5', dev: true },
         { name: '@vitest/coverage-v8', version: '^4.1.5', dev: true },
       ];
-      
+
       const isFrontend = !['hono', 'elysia', 'fastify', 'nestjs', 'express', 'nitro', 'h3', 'bun-native'].includes(config.framework || '');
-      
+
       if (isFrontend) {
         deps.push({ name: 'happy-dom', version: '^12.0.0', dev: true });
-        
+
         const isReact = config.framework?.includes('react') || config.framework === 'nextjs' || config.framework?.includes('tanstack');
         const isVue = config.framework?.includes('vue') || config.framework === 'nuxt';
         const isSvelte = config.framework?.includes('svelte');
-        
+
         if (isReact) {
           deps.push({ name: '@testing-library/react', version: '^16.0.0', dev: true });
         } else if (isVue) {
@@ -584,7 +584,7 @@ ${cleanupCall}});
           deps.push({ name: '@testing-library/svelte', version: '^4.0.0', dev: true });
         }
       }
-      
+
       return deps;
     },
   };
@@ -712,9 +712,9 @@ function registerStackmintConfigAdapter(): void {
           ? 'lib/stackmint-config.ts'
           : framework === 'react-router-v7' || framework === 'tanstack-start'
             ? 'app/lib/stackmint-config.ts'
-          : framework === 'react-native' || framework === 'expo'
-            ? 'stackmint-config.ts'
-            : 'src/lib/stackmint-config.ts';
+            : framework === 'react-native' || framework === 'expo'
+              ? 'stackmint-config.ts'
+              : 'src/lib/stackmint-config.ts';
 
       const frozen = {
         projectName: config.projectName || 'my-app',

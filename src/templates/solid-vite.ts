@@ -251,7 +251,7 @@ export default {
 
     if (config.testing?.includes('vitest')) {
       deps.push(
-        { name: '@testing-library/solid', version: '^5.0.0', dev: true },
+        { name: '@solidjs/testing-library', version: '^0.8.0', dev: true },
         { name: 'vitest', version: '^2.0.0', dev: true },
         { name: 'jsdom', version: '^25.0.0', dev: true },
       );
