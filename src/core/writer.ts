@@ -8,6 +8,24 @@ import { StackConfig } from '../cli/types.js';
 import { log } from '../utils/logger.js';
 import { validateGeneratedProject } from './validator.js';
 
+/** Returns the major version number of the npm in PATH, or 0 on error. */
+async function getNpmMajorVersion(): Promise<number> {
+  try {
+    const { stdout } = await execa('npm', ['--version'], { stdio: 'pipe' });
+    const major = parseInt(stdout.trim().split('.')[0], 10);
+    return isNaN(major) ? 0 : major;
+  } catch {
+    return 0;
+  }
+}
+
+/** Build the `npm install` args, adding --legacy-peer-deps only on npm >=7. */
+async function buildNpmInstallArgs(): Promise<string[]> {
+  const major = await getNpmMajorVersion();
+  // --legacy-peer-deps was introduced in npm 7
+  return major >= 7 ? ['install', '--legacy-peer-deps'] : ['install'];
+}
+
 export async function writeProject(
   config: StackConfig,
   files: AdapterFile[],
@@ -94,10 +112,11 @@ coverage
 
     try {
       const pm = config.packageManager || 'npm';
+      const npmInstallArgs = await buildNpmInstallArgs();
       const installCmd = pm === 'pnpm' ? ['pnpm', 'install'] :
                          pm === 'yarn' ? ['yarn'] :
                          pm === 'bun' ? ['bun', 'install'] :
-                         ['npm', 'install', '--legacy-peer-deps'];
+                         ['npm', ...npmInstallArgs];
 
       const result = await execa(installCmd[0], installCmd.slice(1), {
         cwd: projectDir,
@@ -164,7 +183,8 @@ coverage
       log.warn('Retrying installation with npm...');
       try {
         const spinner2 = ora('Retrying with npm install...').start();
-        await execa('npm', ['install', '--legacy-peer-deps'], {
+        const retryArgs = await buildNpmInstallArgs();
+        await execa('npm', retryArgs, {
           cwd: projectDir,
           stdio: 'inherit',
         });

@@ -8,7 +8,7 @@ export default defineConfig({
   splitting: false,
   clean: true,
   platform: 'node',
-  target: 'node20',
+  target: 'node18',
   noExternal: [
     'commander',
     '@clack/prompts',
