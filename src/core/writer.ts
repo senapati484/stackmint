@@ -233,7 +233,7 @@ function buildPackageJson(
 
   return {
     name: config.projectName || 'my-app',
-    version: '0.1.5',
+    version: '0.1.6',
     private: true,
     type: 'module',
     scripts: mergedScripts,
