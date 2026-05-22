@@ -189,7 +189,7 @@ export function GET() {
 `,
       },
       { path: 'src/lib/stackmint-config.ts', content: buildStackmintConfigLib(config) },
-      getStackmintLogoFile(),
+      getStackmintLogoFile('static/logo.png'),
       ...buildAuthFiles(config),
       { path: 'static/.gitkeep', content: '' },
       {

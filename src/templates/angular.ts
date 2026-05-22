@@ -142,10 +142,6 @@ bootstrapApplication(AppComponent);
       content: buildStackmintConfigLib(config),
     },
     getStackmintLogoFile(),
-    {
-      path: 'public/logo.png',
-      content: '',
-    },
     utilsFile,
     ...testingFiles,
     ...(dockerfile ? [dockerfile] : []),
