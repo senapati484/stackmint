@@ -514,12 +514,39 @@ export function registerVitestAdapter(): void {
       const isReact = config.framework?.includes('react') || config.framework === 'nextjs' || config.framework?.includes('tanstack');
       const isVue = config.framework?.includes('vue') || config.framework === 'nuxt';
       const isSvelte = config.framework?.includes('svelte');
+      const isSolid = config.framework?.includes('solid');
+
+      const isBackend = ['hono', 'elysia', 'fastify', 'nestjs', 'express', 'nitro', 'h3', 'bun-native'].includes(config.framework || '');
+      const isFrontend = !isBackend;
+
+      let testEnv = 'node';
+      let setupFilesLine = '';
+      let imports = "import { defineConfig } from 'vitest/config';\nimport tsconfigPaths from 'vite-tsconfig-paths';\n";
+      let plugins = "tsconfigPaths()";
+
+      if (isFrontend) {
+        testEnv = isVue ? 'happy-dom' : 'jsdom';
+        setupFilesLine = "\n    setupFiles: ['./tests/setup.ts'],";
+        if (isReact) {
+          imports += "import react from '@vitejs/plugin-react';\n";
+          plugins = "react(), tsconfigPaths()";
+        } else if (isVue) {
+          imports += "import vue from '@vitejs/plugin-vue';\n";
+          plugins = "vue(), tsconfigPaths()";
+        } else if (isSvelte) {
+          imports += "import { svelte } from '@sveltejs/vite-plugin-svelte';\n";
+          plugins = "svelte({ hot: !process.env.VITEST }), tsconfigPaths()";
+        } else if (isSolid) {
+          imports += "import solid from 'vite-plugin-solid';\n";
+          plugins = "solid(), tsconfigPaths()";
+        }
+      }
 
       let cleanupImport = '';
       let cleanupCall = '';
 
       if (isReact) {
-        cleanupImport = "import { cleanup } from '@testing-library/react';\n";
+        cleanupImport = "import '@testing-library/jest-dom';\nimport { cleanup } from '@testing-library/react';\n";
         cleanupCall = "  cleanup();\n";
       } else if (isVue) {
         cleanupImport = "import { cleanup } from '@testing-library/vue';\n";
@@ -527,18 +554,21 @@ export function registerVitestAdapter(): void {
       } else if (isSvelte) {
         cleanupImport = "import { cleanup } from '@testing-library/svelte';\n";
         cleanupCall = "  cleanup();\n";
+      } else if (isSolid) {
+        cleanupImport = "import { cleanup } from '@solidjs/testing-library';\n";
+        cleanupCall = "  cleanup();\n";
       }
 
-      return [
+      const files: AdapterFile[] = [
         {
           path: 'vitest.config.ts',
-          content: `import { defineConfig } from 'vitest/config';
-
+          content: `${imports}
 export default defineConfig({
+  plugins: [${plugins}],
   test: {
     globals: true,
-    environment: 'node',
-    include: ['**/*.test.ts', '**/*.test.tsx'],
+    environment: '${testEnv}',${setupFilesLine}
+    include: ['**/*.test.{ts,tsx,js,jsx}'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
@@ -547,7 +577,10 @@ export default defineConfig({
 });
 `,
         },
-        {
+      ];
+
+      if (isFrontend) {
+        files.push({
           path: 'tests/setup.ts',
           content: `import { beforeEach, afterEach } from 'vitest';
 ${cleanupImport}
@@ -558,13 +591,16 @@ beforeEach(() => {
 afterEach(() => {
 ${cleanupCall}});
 `,
-        },
-      ];
+        });
+      }
+
+      return files;
     },
     dependencies: (config: StackConfig): AdapterDependency[] => {
       const deps: AdapterDependency[] = [
         { name: 'vitest', version: '^4.1.5', dev: true },
         { name: '@vitest/coverage-v8', version: '^4.1.5', dev: true },
+        { name: 'vite-tsconfig-paths', version: '^5.1.4', dev: true },
       ];
 
       const isFrontend = !['hono', 'elysia', 'fastify', 'nestjs', 'express', 'nitro', 'h3', 'bun-native'].includes(config.framework || '');
@@ -575,6 +611,7 @@ ${cleanupCall}});
         const isReact = config.framework?.includes('react') || config.framework === 'nextjs' || config.framework?.includes('tanstack');
         const isVue = config.framework?.includes('vue') || config.framework === 'nuxt';
         const isSvelte = config.framework?.includes('svelte');
+        const isSolid = config.framework?.includes('solid');
 
         if (isReact) {
           deps.push({ name: '@testing-library/react', version: '^16.0.0', dev: true });
@@ -582,6 +619,8 @@ ${cleanupCall}});
           deps.push({ name: '@testing-library/vue', version: '^8.0.0', dev: true });
         } else if (isSvelte) {
           deps.push({ name: '@testing-library/svelte', version: '^4.0.0', dev: true });
+        } else if (isSolid) {
+          deps.push({ name: '@solidjs/testing-library', version: '^0.8.4', dev: true });
         }
       }
 

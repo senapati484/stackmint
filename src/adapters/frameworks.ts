@@ -107,6 +107,7 @@ export function registerSolidFrameworkAdapter(): void {
       { name: 'typescript', version: '^5.3.0', dev: true },
       { name: 'tailwindcss', version: '^4.0.0', dev: true },
       { name: '@tailwindcss/vite', version: '^4.0.0', dev: true },
+      { name: 'vite-tsconfig-paths', version: '^5.1.4', dev: true },
     ],
     condition: (config: StackConfig) => config.framework === 'solid-vite',
   };

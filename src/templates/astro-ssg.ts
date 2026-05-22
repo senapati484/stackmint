@@ -42,7 +42,6 @@ import '../styles/global.css';
 </html>
 `,
     },
-    getStackmintLogoFile(),
     {
       path: 'src/styles/global.css',
       content: `${getFrontendGlobalStyles()}
