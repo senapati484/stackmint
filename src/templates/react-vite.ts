@@ -334,7 +334,14 @@ export interface User {
     },
     {
       path: 'src/styles/globals.css',
-      content: `${getFrontendGlobalStyles()}`,
+      content: `@import "tailwindcss";
+
+@theme {
+  --color-mint: #1ee0c6;
+  --color-mint-light: #2ef5d6;
+}
+
+${getFrontendGlobalStyles().replace('@import "tailwindcss";\n', '')}`,
     },
     {
       path: 'src/styles/app.css',
@@ -396,24 +403,6 @@ export default defineConfig({
     host: true,
   },
 });
-`,
-    },
-    {
-      path: 'tailwind.config.ts',
-      content: `import type { Config } from 'tailwindcss';
-
-export default {
-  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
-  theme: {
-    extend: {
-      colors: {
-        mint: '#1ee0c6',
-        'mint-light': '#2ef5d6',
-      },
-    },
-  },
-  plugins: [],
-} satisfies Config;
 `,
     },
 {

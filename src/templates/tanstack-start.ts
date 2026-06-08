@@ -131,6 +131,29 @@ function Home() {
 }
 `;
 
+// ─── app.config.ts ───────────────────────────────────────────────────────────
+
+function buildAppConfig(config: StackConfig): string {
+  const useTailwind = config.styling === 'tailwind' || config.uiLibrary === 'shadcn';
+  const plugins: string[] = ['tsconfigPaths()'];
+  const imports: string[] = ["import tsconfigPaths from 'vite-tsconfig-paths';"];
+
+  if (useTailwind) {
+    imports.push("import tailwindcss from '@tailwindcss/vite';");
+    plugins.unshift('tailwindcss()');
+  }
+
+  return `${imports.join('\n')}
+import { defineConfig } from '@tanstack/react-start/config';
+
+export default defineConfig({
+  vite: {
+    plugins: [${plugins.join(', ')}],
+  },
+});
+`;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // TEMPLATE REGISTRATION
 // ─────────────────────────────────────────────────────────────────────────────
@@ -180,15 +203,7 @@ export const Route = createFileRoute('/api/health')({
       ...buildAuthFiles(config),
       {
         path: 'app.config.ts',
-        content: `import { defineConfig } from '@tanstack/react-start/config';
-import tsconfigPaths from 'vite-tsconfig-paths';
-
-export default defineConfig({
-  vite: {
-    plugins: [tsconfigPaths()],
-  },
-});
-`,
+        content: buildAppConfig(config),
       },
       {
         path: 'tsconfig.json',

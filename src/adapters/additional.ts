@@ -1,4 +1,4 @@
-import { Adapter, AdapterFile, AdapterDependency, ADAPTER_REGISTRY } from './index.js';
+import { StackConfig, Adapter, AdapterFile, AdapterDependency, ADAPTER_REGISTRY } from './index.js';
 import { generateShadcnComponents } from './ui-library.js';
 import { generateUtilsHelpers } from './utils-helpers.js';
 import { generateProviderComponents } from './providers.js';
@@ -8,42 +8,6 @@ import { generateVueComponents } from './vue-framework.js';
 import { generateReactViteComponents } from './react-vite.js';
 import { generateSolidComponents } from './solid.js';
 import { generateAstroComponents } from './astro.js';
-
-interface StackConfig {
-  framework?: string;
-  database?: string;
-  runtime?: string;
-  packageManager?: string;
-  deployTarget?: string;
-  baas?: string;
-  orm?: string;
-  auth?: string;
-  apiLayer?: string;
-  validation?: string;
-  styling?: string;
-  uiLibrary?: string;
-  forms?: string;
-  stateManagement?: string;
-  dataFetching?: string;
-  ai?: string;
-  jobs?: string;
-  cache?: string;
-  email?: string;
-  payments?: string;
-  testing?: string;
-  docker?: boolean;
-  githubActions?: boolean;
-  husky?: boolean;
-  changesets?: boolean;
-  turborepo?: boolean;
-  aiConfig?: string[];
-  category?: string;
-  projectName?: string;
-  monorepo?: boolean;
-  monorepoApps?: string[];
-  preset?: string;
-  [key: string]: unknown;
-}
 
 const isWebReactFramework = (framework?: string) =>
   framework === 'nextjs' ||
@@ -77,12 +41,22 @@ export function registerTailwindAdapter(): void {
 
       return files;
     },
-    dependencies: (): AdapterDependency[] => [
-      { name: 'tailwindcss', version: '^4.0.0', dev: true },
-      { name: '@tailwindcss/vite', version: '^4.0.0', dev: true },
-      { name: '@tailwindcss/postcss', version: '^4.0.0', dev: true },
-      { name: 'postcss', version: '^8.4.0', dev: true },
-    ],
+    dependencies: (config: StackConfig): AdapterDependency[] => {
+      const deps: AdapterDependency[] = [
+        { name: 'tailwindcss', version: '^4.0.0', dev: true },
+        { name: '@tailwindcss/vite', version: '^4.0.0', dev: true },
+      ];
+
+      const framework = config.framework || '';
+      if (framework.startsWith('next') || framework === 'nuxt') {
+        deps.push(
+          { name: '@tailwindcss/postcss', version: '^4.0.0', dev: true },
+          { name: 'postcss', version: '^8.4.0', dev: true },
+        );
+      }
+
+      return deps;
+    },
   };
 
   ADAPTER_REGISTRY.set('tailwind', adapter);
@@ -739,6 +713,62 @@ function registerConformAdapter(): void {
   ADAPTER_REGISTRY.set('conform', adapter);
 }
 
+function registerJotaiAdapter(): void {
+  ADAPTER_REGISTRY.set('jotai', {
+    id: 'jotai', name: 'Jotai',
+    files: (): AdapterFile[] => [],
+    dependencies: (): AdapterDependency[] => [{ name: 'jotai', version: '^2.10.0' }],
+  });
+}
+
+function registerNanostoresAdapter(): void {
+  ADAPTER_REGISTRY.set('nanostores', {
+    id: 'nanostores', name: 'Nano Stores',
+    files: (): AdapterFile[] => [],
+    dependencies: (): AdapterDependency[] => [{ name: 'nanostores', version: '^0.11.0' }],
+  });
+}
+
+function registerMastraAdapter(): void {
+  ADAPTER_REGISTRY.set('mastra', {
+    id: 'mastra', name: 'Mastra AI',
+    files: (): AdapterFile[] => [],
+    dependencies: (): AdapterDependency[] => [{ name: 'mastra', version: '^0.1.0' }],
+  });
+}
+
+function registerLangChainAdapter(): void {
+  ADAPTER_REGISTRY.set('langchain', {
+    id: 'langchain', name: 'LangChain',
+    files: (): AdapterFile[] => [],
+    dependencies: (): AdapterDependency[] => [{ name: 'langchain', version: '^0.3.0' }],
+  });
+}
+
+function registerNodemailerAdapter(): void {
+  ADAPTER_REGISTRY.set('nodemailer', {
+    id: 'nodemailer', name: 'Nodemailer',
+    files: (): AdapterFile[] => [],
+    dependencies: (): AdapterDependency[] => [{ name: 'nodemailer', version: '^6.9.0', dev: false }],
+  });
+}
+
+function registerSendGridAdapter(): void {
+  ADAPTER_REGISTRY.set('sendgrid', {
+    id: 'sendgrid', name: 'SendGrid',
+    files: (): AdapterFile[] => [],
+    dependencies: (): AdapterDependency[] => [{ name: '@sendgrid/mail', version: '^8.1.0' }],
+  });
+}
+
+function registerTriggerDevAdapter(): void {
+  ADAPTER_REGISTRY.set('trigger-dev', {
+    id: 'trigger-dev', name: 'Trigger.dev',
+    files: (): AdapterFile[] => [],
+    dependencies: (): AdapterDependency[] => [{ name: '@trigger.dev/sdk', version: '^3.0.0' }],
+  });
+}
+
 function registerStackmintConfigAdapter(): void {
   const adapter: Adapter = {
     id: 'stackmint-config',
@@ -925,4 +955,11 @@ export function initAdditionalAdapters(): void {
   registerReactHookFormAdapter();
   registerTanStackFormAdapter();
   registerConformAdapter();
+  registerJotaiAdapter();
+  registerNanostoresAdapter();
+  registerMastraAdapter();
+  registerLangChainAdapter();
+  registerNodemailerAdapter();
+  registerSendGridAdapter();
+  registerTriggerDevAdapter();
 }

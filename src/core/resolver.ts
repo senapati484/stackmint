@@ -58,14 +58,6 @@ export const CONFLICT_RULES: ConflictRule[] = [
     message: 'Firebase uses Firestore (NoSQL) — ORM and SQL DB options removed.',
     severity: 'info',
   },
-  // C07: tRPC + oRPC both selected → keep oRPC
-  {
-    id: 'C07',
-    check: (c) => c.apiLayer === 'orpc',
-    resolve: (c) => c,
-    message: 'tRPC and oRPC are mutually exclusive. Keeping oRPC (broader framework support).',
-    severity: 'warn',
-  },
   // C08: tRPC on Vue/Nuxt/Solid/Svelte framework → warn + suggest oRPC
   {
     id: 'C08',
@@ -161,6 +153,14 @@ export const CONFLICT_RULES: ConflictRule[] = [
     resolve: (c) => ({ ...c, forms: 'tanstack-form' }),
     message: 'React Hook Form is React-only. Using TanStack Form for this framework.',
     severity: 'warn',
+  },
+  // C22: Docker + Fly.io → disable standalone Docker (Fly.io handles Dockerfile)
+  {
+    id: 'C22',
+    check: (c) => c.docker === true && c.deployTarget === 'flyio',
+    resolve: (c) => ({ ...c, docker: false }),
+    message: 'Fly.io generates its own Dockerfile. Standalone Docker adapter disabled.',
+    severity: 'info',
   },
 ];
 

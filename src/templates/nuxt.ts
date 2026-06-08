@@ -9,15 +9,7 @@ import { buildAuthFiles } from './shared/auth.js';
 // ─── Pages ───────────────────────────────────────────────────────────────────
 
 
-function buildAppVue(config: StackConfig): string {
-  const providers: string[] = [];
-  const extraImports: string[] = [];
-
-  // Theme / Color Mode
-  if (config.styling === 'tailwind' || config.uiLibrary === 'shadcn') {
-    // Nuxt uses @nuxtjs/color-mode or simple CSS classes
-  }
-
+function buildAppVue(_config: StackConfig): string {
   return `<script setup lang="ts">
 // Layout and provider logic can be added here
 </script>
@@ -30,7 +22,7 @@ function buildAppVue(config: StackConfig): string {
 `;
 }
 
-function buildDefaultLayout(config: StackConfig): string {
+function buildDefaultLayout(_config: StackConfig): string {
   return `<template>
   <div class="min-h-screen bg-background antialiased">
     <slot />
@@ -42,7 +34,7 @@ function buildDefaultLayout(config: StackConfig): string {
 
 // ─── Middleware ─────────────────────────────────────────────────────────────
 
-function buildNuxtMiddleware(config: StackConfig): string | null {
+function buildNuxtMiddleware(config: Partial<StackConfig>): string | null {
   if (config.auth === 'clerk') return null; // Clerk has its own module
 
   if (config.auth === 'next-auth') {

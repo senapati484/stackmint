@@ -120,6 +120,7 @@ export const PRESETS: Record<string, Partial<StackConfig>> = {
     framework: 'vitepress',
     styling: 'none',
     testing: 'none',
+    deployTarget: 'none',
     aiConfig: ['claude-code'],
   },
   'realtime-convex': {

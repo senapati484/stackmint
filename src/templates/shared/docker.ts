@@ -95,7 +95,7 @@ COPY --from=builder /app/.output ./.output
 COPY --from=builder /app/package.json ./package.json
 USER node
 EXPOSE 3000
-ENV PORT=3000 NITR_PRESET=node-server
+ENV PORT=3000 NITRO_PRESET=node-server
 CMD ["node", ".output/server/index.mjs"]
 `,
       };

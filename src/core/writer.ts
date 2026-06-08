@@ -7,6 +7,18 @@ import { AdapterFile, AdapterDependency, AdapterEnvVar } from '../adapters/index
 import { StackConfig } from '../cli/types.js';
 import { log } from '../utils/logger.js';
 import { validateGeneratedProject } from './validator.js';
+import { readFileSync } from 'fs';
+
+const STACKMINT_VERSION = getPackageVersion();
+
+function getPackageVersion(): string {
+  try {
+    const pkg = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf-8'));
+    return pkg.version || '0.1.8';
+  } catch {
+    return '0.1.8';
+  }
+}
 
 /** Returns the major version number of the npm in PATH, or 0 on error. */
 async function getNpmMajorVersion(): Promise<number> {
@@ -233,7 +245,7 @@ function buildPackageJson(
 
   return {
     name: config.projectName || 'my-app',
-    version: '0.1.7',
+    version: STACKMINT_VERSION,
     private: true,
     type: 'module',
     scripts: mergedScripts,

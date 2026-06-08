@@ -76,37 +76,24 @@ function detectPackageManager(projectPath: string, packageJson: any): 'npm' | 'y
   return 'npm';
 }
 
-async function validateDevServer(projectPath: string, devScript: string, pm: 'npm' | 'yarn' | 'pnpm' | 'bun'): Promise<void> {
-  // Extract just the command from the script (e.g., "vite" from "vite")
-  const command = devScript.split(' ')[0];
-  
-  // Skip validation if it's a custom/complex command
-  if (command.includes('&&') || command.includes('|') || command.includes(';')) {
-    return;
-  }
-
-  // Create timeout promise
-  const timeoutPromise = new Promise<never>((_, reject) => {
-    setTimeout(() => {
-      reject(new Error('Dev server startup timeout (5s) - may need manual setup'));
-    }, 5000);
-  });
+async function validateDevServer(projectPath: string, _devScript: string, pm: 'npm' | 'yarn' | 'pnpm' | 'bun'): Promise<void> {
+  const abortController = new AbortController();
+  const timer = setTimeout(() => abortController.abort(), 5000);
 
   try {
-    // Run dev command with timeout
-    const promise = execa(pm === 'bun' ? 'bun' : pm, 
+    const subprocess = execa(pm === 'bun' ? 'bun' : pm,
       pm === 'bun' ? ['run', 'dev'] : pm === 'yarn' ? ['dev'] : pm === 'pnpm' ? ['dev'] : ['run', 'dev'],
       {
         cwd: projectPath,
-        timeout: 5000,
-        stdio: ['pipe', 'pipe', 'pipe'],
+        signal: abortController.signal,
+        stdio: 'pipe',
       }
     );
 
-    // Give the server 5 seconds to start
-    await Promise.race([promise, timeoutPromise]);
-  } catch (e) {
-    // Ignore errors from dev server startup - might be expected behavior
-    // (e.g., server starts in background)
+    await subprocess;
+  } catch {
+    // Expected — dev server may not fully start within 5s
+  } finally {
+    clearTimeout(timer);
   }
 }

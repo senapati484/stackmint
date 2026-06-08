@@ -1,4 +1,3 @@
-import { ADAPTER_REGISTRY } from '../adapters/index.js';
 import { initDatabaseAdapters } from '../adapters/database.js';
 import { initBaaSAdapters } from '../adapters/baas.js';
 import { initAuthAdapters } from '../adapters/auth.js';

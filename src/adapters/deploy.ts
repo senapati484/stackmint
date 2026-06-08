@@ -1,40 +1,5 @@
-import { Adapter, AdapterFile, ADAPTER_REGISTRY } from './index.js';
-
-interface StackConfig {
-  framework?: string;
-  database?: string;
-  runtime?: string;
-  packageManager?: string;
-  deployTarget?: string;
-  baas?: string;
-  orm?: string;
-  auth?: string;
-  apiLayer?: string;
-  validation?: string;
-  styling?: string;
-  uiLibrary?: string;
-  forms?: string;
-  stateManagement?: string;
-  dataFetching?: string;
-  ai?: string;
-  jobs?: string;
-  cache?: string;
-  email?: string;
-  payments?: string;
-  testing?: string;
-  docker?: boolean;
-  githubActions?: boolean;
-  husky?: boolean;
-  changesets?: boolean;
-  turborepo?: boolean;
-  aiConfig?: string[];
-  category?: string;
-  projectName?: string;
-  monorepo?: boolean;
-  monorepoApps?: string[];
-  preset?: string;
-  [key: string]: unknown;
-}
+import { StackConfig, Adapter, AdapterFile, ADAPTER_REGISTRY } from './index.js';
+import { generateDockerfileContent } from './shared/docker.js';
 
 const FRAMEWORK_VERCEL_MAP: Record<string, string> = {
   nextjs: 'nextjs',
@@ -85,13 +50,13 @@ export function registerDeployAdapters(): void {
     files: (config: StackConfig): AdapterFile[] => [
       {
         path: 'wrangler.toml',
-        content: `name = \`\${config.projectName || 'my-worker'}\`
+        content: `name = "${config.projectName || 'my-worker'}"
 main = "src/index.ts"
 compatibility_date = "2024-01-01"
 compatibility_flags = ["nodejs_compat"]
 
 [build]
-command = \`\${getBuildCommand(config) || 'npm run build'}\`
+command = "${getBuildCommand(config) || 'npm run build'}"
 
 # Uncomment as needed:
 # [[kv_namespaces]]
@@ -119,7 +84,7 @@ command = \`\${getBuildCommand(config) || 'npm run build'}\`
     files: (config: StackConfig): AdapterFile[] => [
       {
         path: 'fly.toml',
-        content: `app = \`\${config.projectName || 'my-app'}\`
+        content: `app = "${config.projectName || 'my-app'}"
 primary_region = "iad"
 
 [build]
@@ -142,32 +107,11 @@ primary_region = "iad"
       },
       {
         path: 'Dockerfile',
-        content: `FROM node:20-alpine AS deps
-WORKDIR /app
-COPY package.json package-lock.json* ./
-RUN npm ci --ignore-scripts
-
-FROM node:20-alpine AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
-RUN ${getBuildCommand(config) || 'npm run build'}
-
-FROM node:20-alpine AS runner
-WORKDIR /app
-ENV NODE_ENV=production
-
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nodejs
-
-COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
-COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
-COPY --from=builder --chown=nodejs:nodejs /app/package.json ./
-
-USER nodejs
-EXPOSE 3000
-CMD ["node", "dist/index.js"]
-`,
+        content: generateDockerfileContent({
+          runtime: config.runtime || 'node',
+          buildCommand: getBuildCommand(config),
+          startCommand: config.runtime === 'bun' ? '["bun", "src/index.ts"]' : '["node", "dist/index.js"]',
+        }),
       },
       {
         path: '.dockerignore',
@@ -196,7 +140,7 @@ coverage
 builder = "NIXPACKS"
 
 [deploy]
-startCommand = \`\${getStartCommand(config) || 'npm start'}\`
+startCommand = "${getStartCommand(config) || 'npm start'}"
 `,
       },
       {

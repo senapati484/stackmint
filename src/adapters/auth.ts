@@ -1,43 +1,8 @@
-import { Adapter, AdapterFile, AdapterDependency, AdapterEnvVar, ADAPTER_REGISTRY } from './index.js';
-
-interface StackConfig {
-  framework?: string;
-  database?: string;
-  runtime?: string;
-  packageManager?: string;
-  deployTarget?: string;
-  baas?: string;
-  orm?: string;
-  auth?: string;
-  apiLayer?: string;
-  validation?: string;
-  styling?: string;
-  uiLibrary?: string;
-  forms?: string;
-  stateManagement?: string;
-  dataFetching?: string;
-  ai?: string;
-  jobs?: string;
-  cache?: string;
-  email?: string;
-  payments?: string;
-  testing?: string;
-  docker?: boolean;
-  githubActions?: boolean;
-  husky?: boolean;
-  changesets?: boolean;
-  turborepo?: boolean;
-  aiConfig?: string[];
-  category?: string;
-  projectName?: string;
-  monorepo?: boolean;
-  monorepoApps?: string[];
-  preset?: string;
-  [key: string]: unknown;
-}
+import { StackConfig, Adapter, AdapterFile, AdapterDependency, AdapterEnvVar, ADAPTER_REGISTRY } from './index.js';
 
 export function registerBetterAuthAdapter(): void {
-  const isBetterAuthSupported = (framework?: string) => framework === 'nextjs';
+  const isBetterAuthSupported = (framework?: string) =>
+    framework === 'nextjs' || framework === 'hono' || framework === 'elysia';
 
   const adapter: Adapter = {
     id: 'better-auth',
@@ -193,7 +158,19 @@ export const load = async ({ request }: { request: Request }) => {
   ADAPTER_REGISTRY.set('clerk', adapter);
 }
 
+function registerNextAuthAdapter(): void {
+  const adapter: Adapter = {
+    id: 'next-auth',
+    name: 'NextAuth.js',
+    condition: (config) => config.framework === 'nextjs',
+    files: (): AdapterFile[] => [],
+    dependencies: (): AdapterDependency[] => [],
+  };
+  ADAPTER_REGISTRY.set('next-auth', adapter);
+}
+
 export function initAuthAdapters(): void {
   registerBetterAuthAdapter();
   registerClerkAdapter();
+  registerNextAuthAdapter();
 }

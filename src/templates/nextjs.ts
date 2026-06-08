@@ -346,11 +346,16 @@ export async function GET() {
       { path: 'src/lib/stackmint-config.ts', content: buildStackmintConfigLib(config) },
       {
         path: 'src/lib/utils.ts',
-        content: `import { clsx, type ClassValue } from 'clsx';
+        content: config.styling === 'tailwind' || config.uiLibrary === 'shadcn'
+          ? `import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
+}
+`
+          : `export function cn(...classes: (string | boolean | undefined | null)[]) {
+  return classes.filter(Boolean).join(' ');
 }
 `,
       },
@@ -524,13 +529,15 @@ CMD ["node", "server.js"]
 
   dependencies: (config: StackConfig): AdapterDependency[] => {
     const deps: AdapterDependency[] = [
-      { name: 'clsx', version: '^2.1.1' },
-      { name: 'tailwind-merge', version: '^2.5.4' },
       { name: 'lucide-react', version: '^0.460.0' },
     ];
 
     if (config.styling === 'tailwind' || config.uiLibrary === 'shadcn') {
-      deps.push({ name: 'next-themes', version: '^0.4.3' });
+      deps.push(
+        { name: 'clsx', version: '^2.1.1' },
+        { name: 'tailwind-merge', version: '^2.5.4' },
+        { name: 'next-themes', version: '^0.4.3' },
+      );
     }
 
     if (config.uiLibrary === 'shadcn') {

@@ -258,6 +258,7 @@ export function generateShadcnComponents(config: UILibraryConfig): AdapterFile[]
 
   const framework = config.framework || '';
   const isNextJs = framework.startsWith('next');
+  const isReact = isNextJs || framework === 'react-vite' || framework === 'react-router-v7' || framework === 'tanstack-start';
 
   // Add components
   Object.values(SHADCN_COMPONENTS).forEach((component) => {
@@ -266,6 +267,41 @@ export function generateShadcnComponents(config: UILibraryConfig): AdapterFile[]
       content: component.content,
     });
   });
+
+  // Override sonner for non-Next.js frameworks (next-themes only works with Next.js)
+  if (!isNextJs) {
+    const sonnerIndex = files.findIndex(f => f.path === 'src/components/ui/sonner.tsx');
+    if (sonnerIndex !== -1) {
+      files[sonnerIndex].content = `'use client'
+
+import { Toaster as Sonner } from "sonner"
+
+type ToasterProps = React.ComponentProps<typeof Sonner>
+
+const Toaster = ({ ...props }: ToasterProps) => {
+  return (
+    <Sonner
+      className="toaster group"
+      toastOptions={{
+        classNames: {
+          toast:
+            "group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg",
+          description: "group-[.toast]:text-muted-foreground",
+          actionButton:
+            "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
+          cancelButton:
+            "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
+        },
+      }}
+      {...props}
+    />
+  )
+}
+
+export { Toaster }
+`;
+    }
+  }
 
   // Add utils file
   files.push({

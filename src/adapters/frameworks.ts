@@ -1,9 +1,4 @@
-import { Adapter, AdapterFile, AdapterDependency, ADAPTER_REGISTRY } from './index.js';
-
-interface StackConfig {
-  framework?: string;
-  [key: string]: unknown;
-}
+import { StackConfig, Adapter, AdapterFile, AdapterDependency, ADAPTER_REGISTRY } from './index.js';
 
 export function registerReactFrameworkAdapter(): void {
   const adapter: Adapter = {
@@ -18,8 +13,6 @@ export function registerReactFrameworkAdapter(): void {
       { name: 'typescript', version: '^5.3.0', dev: true },
       { name: '@types/react', version: '^18.2.0', dev: true },
       { name: '@types/react-dom', version: '^18.2.0', dev: true },
-      { name: 'tailwindcss', version: '^4.0.0', dev: true },
-      { name: '@tailwindcss/vite', version: '^4.0.0', dev: true },
     ],
     condition: (config: StackConfig) => config.framework === 'react-vite',
   };
@@ -41,9 +34,6 @@ export function registerNextJSFrameworkAdapter(): void {
       { name: '@types/node', version: '^20.0.0', dev: true },
       { name: '@types/react', version: '^19.0.0', dev: true },
       { name: '@types/react-dom', version: '^19.0.0', dev: true },
-      { name: 'tailwindcss', version: '^4.0.0', dev: true },
-      { name: '@tailwindcss/postcss', version: '^4.0.0', dev: true },
-      { name: 'postcss', version: '^8.4.0', dev: true },
     ],
     condition: (config: StackConfig) => !!config.framework?.startsWith('next'),
   };
@@ -64,8 +54,6 @@ export function registerVueFrameworkAdapter(): void {
       { name: 'vite', version: '^5.0.0', dev: true },
       { name: 'typescript', version: '^5.3.0', dev: true },
       { name: '@vue/test-utils', version: '^2.4.0', dev: true },
-      { name: 'tailwindcss', version: '^4.0.0', dev: true },
-      { name: '@tailwindcss/vite', version: '^4.0.0', dev: true },
     ],
     condition: (config: StackConfig) => config.framework === 'vue-vite',
   };
@@ -85,8 +73,6 @@ export function registerSvelteFrameworkAdapter(): void {
       { name: '@tsconfig/svelte', version: '^5.0.0', dev: true },
       { name: 'vite', version: '^5.0.0', dev: true },
       { name: 'typescript', version: '^5.3.0', dev: true },
-      { name: 'tailwindcss', version: '^4.0.0', dev: true },
-      { name: '@tailwindcss/vite', version: '^4.0.0', dev: true },
     ],
     condition: (config: StackConfig) => config.framework === 'svelte-vite',
   };
@@ -105,8 +91,6 @@ export function registerSolidFrameworkAdapter(): void {
       { name: 'vite', version: '^5.0.0', dev: true },
       { name: 'vite-plugin-solid', version: '^2.7.0', dev: true },
       { name: 'typescript', version: '^5.3.0', dev: true },
-      { name: 'tailwindcss', version: '^4.0.0', dev: true },
-      { name: '@tailwindcss/vite', version: '^4.0.0', dev: true },
       { name: 'vite-tsconfig-paths', version: '^5.1.4', dev: true },
     ],
     condition: (config: StackConfig) => config.framework === 'solid-vite',
@@ -173,7 +157,6 @@ export function registerReactRouterAdapter(): void {
       { name: '@react-router/dev', version: '^7.0.0', dev: true },
       { name: 'vite', version: '^5.4.11', dev: true },
       { name: 'vite-tsconfig-paths', version: '^5.1.4', dev: true },
-      { name: '@tailwindcss/vite', version: '^4.0.0', dev: true },
       { name: 'typescript', version: '^5.3.0', dev: true },
     ],
     condition: (config: StackConfig) => config.framework === 'react-router-v7',
@@ -192,8 +175,6 @@ export function registerTanStackStartAdapter(): void {
       { name: 'react', version: '^19.0.0' },
       { name: 'react-dom', version: '^19.0.0' },
       { name: 'vinxi', version: 'latest' },
-      { name: 'tailwindcss', version: '^4.0.0', dev: true },
-      { name: '@tailwindcss/vite', version: '^4.0.0', dev: true },
       { name: 'vite-tsconfig-paths', version: '^5.1.0', dev: true },
       { name: 'typescript', version: '^5.5.0', dev: true },
     ],
@@ -274,8 +255,6 @@ export function registerSvelteKitFrameworkAdapter(): void {
       { name: '@sveltejs/vite-plugin-svelte', version: '^6.0.0', dev: true },
       { name: 'vite', version: '^7.0.0', dev: true },
       { name: 'typescript', version: '^5.3.0', dev: true },
-      { name: 'tailwindcss', version: '^4.0.0', dev: true },
-      { name: '@tailwindcss/vite', version: '^4.0.0', dev: true },
     ],
     condition: (config: StackConfig) => config.framework === 'sveltekit',
   };
@@ -293,8 +272,6 @@ export function registerNuxtFrameworkAdapter(): void {
       { name: 'nuxt', version: '^3.0.0' },
       { name: 'vue', version: '^3.3.0' },
       { name: 'typescript', version: '^5.3.0', dev: true },
-      { name: 'tailwindcss', version: '^4.0.0', dev: true },
-      { name: '@tailwindcss/vite', version: '^4.0.0', dev: true },
     ],
     condition: (config: StackConfig) => config.framework === 'nuxt',
   };
@@ -312,8 +289,6 @@ export function registerAstroFrameworkAdapter(): void {
       { name: 'astro', version: '^4.0.0' },
       ...(config.framework === 'astro-ssr' ? [{ name: '@astrojs/node', version: '^8.0.0' }] : []),
       { name: 'typescript', version: '^5.3.0', dev: true },
-      { name: 'tailwindcss', version: '^4.0.0', dev: true },
-      { name: '@tailwindcss/vite', version: '^4.0.0', dev: true },
     ],
     condition: (config: StackConfig) => !!config.framework?.startsWith('astro'),
   };
@@ -371,7 +346,6 @@ export function registerAngularFrameworkAdapter(): void {
         { name: '@angular/platform-browser-dynamic', version: '^19.0.0' },
         { name: '@angular/router', version: '^19.0.0' },
         { name: '@angular/forms', version: '^19.0.0' },
-        { name: '@angular/common', version: '^19.0.0' },
         { name: 'rxjs', version: '^7.8.0' },
         { name: 'zone.js', version: '~0.15.0' },
         { name: 'tslib', version: '^2.6.0' },

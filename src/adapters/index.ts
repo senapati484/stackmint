@@ -29,7 +29,7 @@ export interface Adapter {
   condition?: (config: StackConfig) => boolean;
 }
 
-interface StackConfig {
+export interface StackConfig {
   framework?: string;
   database?: string;
   runtime?: string;

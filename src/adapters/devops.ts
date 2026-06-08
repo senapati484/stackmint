@@ -1,40 +1,5 @@
-import { Adapter, AdapterFile, AdapterDependency, ADAPTER_REGISTRY } from './index.js';
-
-interface StackConfig {
-  framework?: string;
-  database?: string;
-  runtime?: string;
-  packageManager?: string;
-  deployTarget?: string;
-  baas?: string;
-  orm?: string;
-  auth?: string;
-  apiLayer?: string;
-  validation?: string;
-  styling?: string;
-  uiLibrary?: string;
-  forms?: string;
-  stateManagement?: string;
-  dataFetching?: string;
-  ai?: string;
-  jobs?: string;
-  cache?: string;
-  email?: string;
-  payments?: string;
-  testing?: string;
-  docker?: boolean;
-  githubActions?: boolean;
-  husky?: boolean;
-  changesets?: boolean;
-  turborepo?: boolean;
-  aiConfig?: string[];
-  category?: string;
-  projectName?: string;
-  monorepo?: boolean;
-  monorepoApps?: string[];
-  preset?: string;
-  [key: string]: unknown;
-}
+import { StackConfig, Adapter, AdapterFile, AdapterDependency, ADAPTER_REGISTRY } from './index.js';
+import { generateDockerfileContent, getDockerBuildCommand, getDockerStartCommand } from './shared/docker.js';
 
 const PRESET_NAMES = [
   't3-stack', 'saas-nextjs', 'saas-supabase', 'ai-app',
@@ -234,34 +199,15 @@ npx lint-staged
     name: 'Docker',
     files: (config: StackConfig): AdapterFile[] => {
       const runtime = config.runtime || 'node';
-      let nodeVersion = '20';
-      if (runtime === 'bun') nodeVersion = 'latest';
 
       return [
         {
           path: 'Dockerfile',
-          content: `FROM ${runtime === 'bun' ? 'oven/bun:latest' : `node:${nodeVersion}-alpine`} AS deps
-WORKDIR /app
-COPY package.json package-lock.json* ./
-RUN ${runtime === 'bun' ? 'bun install --frozen-lockfile' : 'npm ci --ignore-scripts'}
-
-FROM ${runtime === 'bun' ? 'oven/bun:latest' : `node:${nodeVersion}-alpine`} AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
-RUN ${getBuildCommand(config, runtime)}
-
-FROM ${runtime === 'bun' ? 'oven/bun:latest' : `node:${nodeVersion}-alpine`} AS runner
-WORKDIR /app
-ENV NODE_ENV=production
-${runtime === 'bun' ? '' : 'RUN addgroup --system --gid 1001 nodejs\nRUN adduser --system --uid 1001 nodejs\n'}
-COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
-COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
-COPY --from=builder --chown=nodejs:nodejs /app/package.json ./
-USER nodejs
-EXPOSE 3000
-CMD ${getStartCommand(config, runtime)}
-`,
+          content: generateDockerfileContent({
+            runtime,
+            buildCommand: getDockerBuildCommand(config),
+            startCommand: getDockerStartCommand(config),
+          }),
         },
         {
           path: '.dockerignore',
@@ -324,26 +270,6 @@ coverage
   ADAPTER_REGISTRY.set('changesets', changesetsAdapter);
   ADAPTER_REGISTRY.set('docker', dockerAdapter);
   ADAPTER_REGISTRY.set('turborepo', turborepoAdapter);
-}
-
-function getBuildCommand(config: StackConfig, runtime: string): string {
-  const framework = config.framework || '';
-  if (framework.startsWith('next')) return runtime === 'bun' ? 'bun run build' : 'npm run build';
-  if (framework === 'sveltekit') return runtime === 'bun' ? 'bun run build' : 'npm run build';
-  if (framework === 'nuxt') return runtime === 'bun' ? 'bun run build' : 'npm run build';
-  if (framework === 'hono' || framework === 'elysia') {
-    return runtime === 'bun' ? 'bun run build' : 'npm run build';
-  }
-  return runtime === 'bun' ? 'bun run build' : 'npm run build';
-}
-
-function getStartCommand(config: StackConfig, runtime: string): string {
-  const framework = config.framework || '';
-  if (framework.startsWith('next')) return 'npm start';
-  if (framework === 'hono' || framework === 'elysia') {
-    return runtime === 'bun' ? 'bun run start' : 'node dist/index.js';
-  }
-  return runtime === 'bun' ? 'bun run start' : 'npm start';
 }
 
 export function initDevOpsAdapters(): void {

@@ -188,12 +188,6 @@ export async function askFramework(config: Partial<StackConfig>): Promise<Partia
 export async function askAddons(config: Partial<StackConfig>): Promise<Partial<StackConfig>> {
   const result = { ...config };
 
-  const shouldSkip = (condition: boolean) => condition;
-
-  if (shouldSkip(result.baas === 'convex')) {
-  } else if (result.baas !== 'none') {
-  }
-
   if (!['content', 'mobile'].includes(result.category as string) && result.baas === 'none') {
     const database = await select({
       message: 'Database?',
@@ -230,15 +224,14 @@ export async function askAddons(config: Partial<StackConfig>): Promise<Partial<S
       const auth = await select({
         message: 'Authentication?',
         options: [
-          { value: 'supabase-auth', label: 'Supabase Auth (included)' },
+          { value: 'none', label: 'Supabase Auth (included)' },
           { value: 'better-auth', label: 'Better Auth', hint: 'recommended' },
           { value: 'clerk', label: 'Clerk' },
           { value: 'next-auth', label: 'NextAuth/Auth.js' },
-          { value: 'none', label: 'None' },
         ],
       });
       if (canceled(auth)) return exitWithMessage();
-      result.auth = auth === 'supabase-auth' ? 'none' : (auth as StackConfig['auth']);
+      result.auth = auth as StackConfig['auth'];
     } else {
       const auth = await select({
         message: 'Authentication?',
@@ -310,11 +303,6 @@ export async function askAddons(config: Partial<StackConfig>): Promise<Partial<S
       { value: 'styled-components', label: 'Styled Components' },
       { value: 'none', label: 'None' },
     ];
-
-    if (result.framework?.includes('react') && !result.framework?.includes('nextjs') && !result.framework?.includes('router') && !result.framework?.includes('analog')) {
-    } else if (result.framework === 'angular') {
-    } else {
-    }
 
     const styling = await select({
       message: 'Styling?',

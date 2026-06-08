@@ -15,6 +15,20 @@ export const FRAMEWORK_LABELS: Record<string, string> = {
   'solid-vite': 'Solid · SPA',
   qwik: 'Qwik',
   angular: 'Angular 19',
+  hono: 'Hono',
+  elysia: 'Elysia',
+  fastify: 'Fastify',
+  nestjs: 'NestJS',
+  express: 'Express',
+  nitro: 'Nitro',
+  h3: 'H3',
+  'bun-native': 'Bun Native',
+  expo: 'Expo SDK 53',
+  'react-native': 'React Native',
+  docusaurus: 'Docusaurus',
+  eleventy: 'Eleventy',
+  gatsby: 'Gatsby',
+  vitepress: 'VitePress',
 };
 
 export const FRAMEWORK_DETAILS: Record<string, string> = {
@@ -32,6 +46,20 @@ export const FRAMEWORK_DETAILS: Record<string, string> = {
   'solid-vite': 'Solid · SPA',
   qwik: 'Qwik · Resumable',
   angular: 'Angular 19',
+  hono: 'Hono · Ultrafast API',
+  elysia: 'Elysia · Bun-native',
+  fastify: 'Fastify · Low overhead',
+  nestjs: 'NestJS · Enterprise',
+  express: 'Express · Minimal',
+  nitro: 'Nitro · Universal',
+  h3: 'H3 · Minimal server',
+  'bun-native': 'Bun · Native',
+  expo: 'Expo SDK 53 · Mobile',
+  'react-native': 'React Native · Mobile',
+  docusaurus: 'Docusaurus · Docs',
+  eleventy: 'Eleventy · SSG',
+  gatsby: 'Gatsby · React SSG',
+  vitepress: 'VitePress · Docs',
 };
 
 export function buildStackmintConfigLib(config: StackConfig): string {

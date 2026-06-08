@@ -1,40 +1,4 @@
-import { Adapter, AdapterFile, AdapterDependency, AdapterEnvVar, ADAPTER_REGISTRY } from './index.js';
-
-interface StackConfig {
-  framework?: string;
-  database?: string;
-  runtime?: string;
-  packageManager?: string;
-  deployTarget?: string;
-  baas?: string;
-  orm?: string;
-  auth?: string;
-  apiLayer?: string;
-  validation?: string;
-  styling?: string;
-  uiLibrary?: string;
-  forms?: string;
-  stateManagement?: string;
-  dataFetching?: string;
-  ai?: string;
-  jobs?: string;
-  cache?: string;
-  email?: string;
-  payments?: string;
-  testing?: string;
-  docker?: boolean;
-  githubActions?: boolean;
-  husky?: boolean;
-  changesets?: boolean;
-  turborepo?: boolean;
-  aiConfig?: string[];
-  category?: string;
-  projectName?: string;
-  monorepo?: boolean;
-  monorepoApps?: string[];
-  preset?: string;
-  [key: string]: unknown;
-}
+import { StackConfig, Adapter, AdapterFile, AdapterDependency, AdapterEnvVar, ADAPTER_REGISTRY } from './index.js';
 
 export function registerSupabaseAdapter(): void {
   const adapter: Adapter = {
